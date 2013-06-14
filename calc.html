@@ -1,0 +1,149 @@
+<html>
+<body>
+<style type="text/css">
+	#data {
+		border-collapse: collapse;
+		font-family: arial;
+		border-right: 1px solid #ddd;
+	}
+	#data th {
+		font-weight: bold;
+		text-align: right;
+		padding-right: 10px;
+		border-right: 1px solid #ddd;
+		width: 50px;
+	}
+	#data td {
+		text-align: center;
+		width: 50px;
+		border-top: 1px solid #ddd;
+		border-bottom: 1px solid #ddd;
+	}
+</style>
+
+	<!--
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+-->
+
+<script src="jquery.min.js"></script>
+<script src="calcImage.js"></script>
+<script src="display.js"></script>
+<script src="sourceCode.js"></script>
+<script src="parser.js"></script>
+
+<script>
+
+$(document).ready(function() {
+  var calcImage = new CalcImage($("#calcImage"));
+  var display = new Display($("#display"), function(ctx) {
+    ctx.transform(1, 0, 0, 1, 0, 0);
+  });
+  display.write("-12345678");
+  var display2 = new Display($("#calcImage"), function(ctx) {
+    ctx.transform(.5, 0, 0, .5, 50, 135);
+  });
+  display2.write("-12345678");
+
+  var parser = new Parser();
+  parser.parse(sourceCode);
+});
+
+
+</script>
+
+</body>
+<div style="position: relative; float: left">
+<img src="TI_DataMath_2500.jpg" width=220 style="position: absolute; top: 0; left: 0;";></img>
+<canvas id="calcImage" width="220" height="400" style="position: absolute; top: 0; left: 0; border: 1px solid red;"></canvas>
+</div>
+<div style="padding-left: 250px; border: 1px solid #ccc">C</div>
+<div style="padding-left: 250px; width: 300px; height: 300px; border: 1px solid #ddd; ">source code</div>
+<div style="clear: both;"></div>
+<table id="data">
+	<tr><th>COND</th>
+		<td id="cc">0</td>
+	</tr>
+	<tr><th>A</th>
+		<td id="a10">0</td>
+		<td id="a9">0</td>
+		<td id="a8">0</td>
+		<td id="a7">0</td>
+		<td id="a6">0</td>
+		<td id="a5">0</td>
+		<td id="a4">0</td>
+		<td id="a3">0</td>
+		<td id="a2">0</td>
+		<td id="a1">0</td>
+		<td id="a0">0</td>
+	</tr>
+	<tr><th>B</th>
+		<td id="b10">0</td>
+		<td id="b9">0</td>
+		<td id="b8">0</td>
+		<td id="b7">0</td>
+		<td id="b6">0</td>
+		<td id="b5">0</td>
+		<td id="b4">0</td>
+		<td id="b3">0</td>
+		<td id="b2">0</td>
+		<td id="b1">0</td>
+		<td id="b0">0</td>
+	</tr>
+	<tr><th>C</th>
+		<td id="c10">0</td>
+		<td id="c9">0</td>
+		<td id="c8">0</td>
+		<td id="c7">0</td>
+		<td id="c6">0</td>
+		<td id="c5">0</td>
+		<td id="c4">0</td>
+		<td id="c3">0</td>
+		<td id="c2">0</td>
+		<td id="c1">0</td>
+		<td id="c0">0</td>
+	</tr>
+	<tr><th>AF</th>
+		<td id="af10">0</td>
+		<td id="af9">0</td>
+		<td id="af8">0</td>
+		<td id="af7">0</td>
+		<td id="af6">0</td>
+		<td id="af5">0</td>
+		<td id="af4">0</td>
+		<td id="af3">0</td>
+		<td id="af2">0</td>
+		<td id="af1">0</td>
+		<td id="af0">0</td>
+	</tr>
+	<tr><th>BF</th>
+		<td id="bf10">0</td>
+		<td id="bf9">0</td>
+		<td id="bf8">0</td>
+		<td id="bf7">0</td>
+		<td id="bf6">0</td>
+		<td id="bf5">0</td>
+		<td id="bf4">0</td>
+		<td id="bf3">0</td>
+		<td id="bf2">0</td>
+		<td id="bf1">0</td>
+		<td id="bf0">0</td>
+	</tr>
+	<tr><th>D</th>
+		<td id="d10">0</td>
+		<td id="d9">0</td>
+		<td id="d8">0</td>
+		<td id="d7">0</td>
+		<td id="d6">0</td>
+		<td id="d5">0</td>
+		<td id="d4">0</td>
+		<td id="d3">0</td>
+		<td id="d2">0</td>
+		<td id="d1">0</td>
+		<td id="d0">0</td>
+	</tr>
+</table>
+<canvas id="display" width="450" height="80" style="padding-left: 61px;"></canvas>
+<br/>
+<canvas id="keygrid" width="329" height="100" style="border: 1px solid #ddd"></canvas>
+<br/>
+</html>

@@ -1,5 +1,19 @@
 <html>
 <body>
+	<!--
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+-->
+
+<script src="jquery.min.js"></script>
+<script src="calcImage.js"></script>
+<script src="display.js"></script>
+<script src="sourceCode.js"></script>
+<script src="parser.js"></script>
+<script src="model.js"></script>
+<script src="keygrid.js"></script>
+<script src="controller.js"></script>
+<script src="sourceWindow.js"></script>
+<script src="cpu.js"></script>
 <style type="text/css">
 	.cond, .cond th, .cond tr, .cond td {
 		border: none !important;
@@ -31,18 +45,6 @@
 	}
 </style>
 
-	<!--
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
--->
-
-<script src="jquery.min.js"></script>
-<script src="calcImage.js"></script>
-<script src="display.js"></script>
-<script src="sourceCode.js"></script>
-<script src="parser.js"></script>
-<script src="model.js"></script>
-<script src="keygrid.js"></script>
-<script src="controller.js"></script>
 
 <script>
 
@@ -52,9 +54,9 @@ $(document).ready(function() {
   var keygrid = new Keygrid($("#keygrid"), model);
   var display = new Display($("#display"), model);
   var display2 = new Display($("#calcDisplay"), model);
-  var parser = new Parser();
-  parser.parse(sourceCode);
-  var controller = new Controller(calcImage, model, keygrid, display, display2, parser);
+  var sourceWindow = new SourceWindow($("#sourceWindow"), model);
+  var parser = new Parser(sourceCode, model);
+  var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow);
   controller.run();
 });
 
@@ -66,7 +68,7 @@ $(document).ready(function() {
 <img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400 style="position: absolute; top: 0; left: 0;";></img>
 <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px; border: 1px solid red;"></canvas>
 </div>
-<div style="margin-left: 250px; width: 300px; height: 300px; border: 1px solid #ddd; ">source code</div>
+<div id="sourceWindow" style="margin-left: 250px; width: 300px; height: 300px; border: 1px solid #ddd; ">source code</div>
 <div style="clear: both;"></div>
 <p>
 <p>

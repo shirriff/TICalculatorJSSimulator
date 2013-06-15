@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>QUnit basic example</title>
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.11.0.css" >
+  <script src="model.js"></script>
+  <script src="cpu.js"></script>
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="http://code.jquery.com/qunit/qunit-1.11.0.js"></script>
+  <script>
+
+    var AABA = (3<<9) | (0<<4); // A+B -> A
+    var AAKA = (3<<9) | (1<<4); // A+K -> A
+    var AAKC = (3<<9) | (2<<4); // A+K -> C
+    var ABOA = (3<<9) | (3<<4); // B -> A
+    var ABOC = (3<<9) | (4<<4); // B -> C
+    var ACKA = (3<<9) | (5<<4); // C+K -> A
+    var AKCB = (3<<9) | (6<<4); // C+K -> B
+    var SABA = (3<<9) | (7<<4); // A-B -> A
+    var SABC = (3<<9) | (8<<4); // A-B -> C
+    var SAKA = (3<<9) | (9<<4); // A-K -> A
+    var SCBC = (3<<9) | (10<<4); // C-B -> C
+    var SCKC = (3<<9) | (11<<4); // C-K -> C
+    var CAB = (3<<9) | (12<<4); // compare A-B
+    var CAK = (3<<9) | (13<<4); // compare A-K
+    var CCB = (3<<9) | (14<<4); // compare C-B
+    var CCK = (3<<9) | (15<<4); // compare C-K
+    var AKA = (3<<9) | (16<<4); // K -> A
+    var AKB = (3<<9) | (17<<4); // K -> B
+    var AKC = (3<<9) | (18<<4); // K -> C
+    var EXAB = (3<<9) | (19<<4); // exchange A and B
+    var SLLA = (3<<9) | (20<<4); // shift A left
+    var SLLB = (3<<9) | (21<<4); // shift B left
+    var SLLC = (3<<9) | (22<<4); // shift C left
+    var SRLA = (3<<9) | (23<<4); // shift A right
+    var SRLB = (3<<9) | (24<<4); // shift B right
+    var SRLC = (3<<9) | (25<<4); // shift C right
+    var AKCN = (3<<9) | (26<<4); // A+K -> A until key down or D11
+    var AAKAH = (3<<9) | (27<<4); // AAKAH A+K -> A hex
+    var SAKAH = (3<<9) | (28<<4); // SAKAH A-K -> A hex
+    var ACKC = (3<<9) | (29<<4); // C+K -> C
+
+    test( "Jump reset taken", function() {
+      var model = new Model();
+      var cpu = new Cpu(model);
+      model.rom = [];
+      model.rom[0x42] = (0 << 9) | 0x123;
+      model.address = 0x42;
+      cpu.step();
+      equal( model.address, 0x123, "Expect jump taken" );
+    });
+
+    test( "Jump reset not taken", function() {
+      var model = new Model();
+      var cpu = new Cpu(model);
+      model.rom = [];
+      model.rom[0x42] = (0 << 9) | 0x123;
+      model.address = 0x42;
+      model.cc = 1;
+      cpu.step();
+      equal( model.address, 0x43, "Expect jump not taken" );
+    });
+
+    test( "Jump set taken", function() {
+      var model = new Model();
+      var cpu = new Cpu(model);
+      model.rom = [];
+      model.rom[0x42] = (1 << 9) | 0x123;
+      model.address = 0x42;
+      model.cc = 1;
+      cpu.step();
+      equal( model.address, 0x123, "Expect jump taken" );
+    });
+
+    test( "Jump set not taken", function() {
+      var model = new Model();
+      var cpu = new Cpu(model);
+      model.rom = [];
+      model.rom[0x42] = (1 << 9) | 0x123;
+      model.address = 0x42;
+      model.cc = 0;
+      cpu.step();
+      equal( model.address, 0x43, "Expect jump not taken" );
+    });
+
+    test( "mask", function() {
+      var model = new Model();
+      var cpu = new Cpu(model);
+      model.rom = [];
+      model.rom[0x42] = (3 << 9) | (0 << 4) | 0;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, 0, "No overflow");
+      deepEqual( [1,2,3], [1,2,3], "Compare");
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1], "Result");
+    });
+
+    test( "AABA, no mask", function() {
+      var model = new Model();
+      var cpu = new Cpu(model);
+      model.rom = [];
+      model.rom[0x42] = (3 << 9) | (0 << 4) | 0;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, 0, "No overflow");
+      deepEqual( [1,2,3], [1,2,3], "Compare");
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1], "Result");
+    });
+
+    test( "AKA, mask 0", function() { // Copy K to A
+      var model = new Model();
+      var cpu = new Cpu(model);
+      model.rom = [];
+      model.rom[0x42] = AKA | 0;
+      model.address = 0x42;
+      model.a = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.a, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7], "Result");
+    });
+
+    test( "AKB, mask 8", function() { // Copy K to B
+      var model = new Model();
+      var cpu = new Cpu(model);
+      model.rom = [];
+      model.rom[0x42] = AKB | 8;
+      model.address = 0x42;
+      model.b = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.b, [1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], "Result");
+    });
+  </script>
+</body>
+</html>

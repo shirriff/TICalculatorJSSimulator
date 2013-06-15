@@ -1,6 +1,11 @@
 <html>
 <body>
 <style type="text/css">
+	.cond, .cond th, .cond tr, .cond td {
+		border: none !important;
+		line-height: 2em;
+		text-align: left !important;
+	}
 	#data {
 		border-collapse: collapse;
 		font-family: arial;
@@ -11,13 +16,18 @@
 		text-align: right;
 		padding-right: 10px;
 		border-right: 1px solid #ddd;
-		width: 50px;
+		max-width: 70px;
+		width: 70px;
 	}
 	#data td {
 		text-align: center;
-		width: 50px;
+		min-width: 48px;
+		width: 48px;
 		border-top: 1px solid #ddd;
 		border-bottom: 1px solid #ddd;
+	}
+	.mask {
+		background-color: #fcc;
 	}
 </style>
 
@@ -30,38 +40,52 @@
 <script src="display.js"></script>
 <script src="sourceCode.js"></script>
 <script src="parser.js"></script>
+<script src="model.js"></script>
+<script src="keygrid.js"></script>
+<script src="controller.js"></script>
 
 <script>
 
 $(document).ready(function() {
   var calcImage = new CalcImage($("#calcImage"));
-  var display = new Display($("#display"), function(ctx) {
-    ctx.transform(1, 0, 0, 1, 0, 0);
-  });
-  display.write("-12345678");
-  var display2 = new Display($("#calcImage"), function(ctx) {
-    ctx.transform(.5, 0, 0, .5, 50, 135);
-  });
-  display2.write("-12345678");
-
+  var model = new Model();
+  var keygrid = new Keygrid($("#keygrid"), model);
+  var display = new Display($("#display"), model);
+  var display2 = new Display($("#calcDisplay"), model);
   var parser = new Parser();
   parser.parse(sourceCode);
+  var controller = new Controller(calcImage, model, keygrid, display, display2, parser);
+  controller.run();
 });
 
 
 </script>
 
 </body>
-<div style="position: relative; float: left">
-<img src="TI_DataMath_2500.jpg" width=220 style="position: absolute; top: 0; left: 0;";></img>
-<canvas id="calcImage" width="220" height="400" style="position: absolute; top: 0; left: 0; border: 1px solid red;"></canvas>
+<div style="position: relative; float: left; height:400px;">
+<img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400 style="position: absolute; top: 0; left: 0;";></img>
+<canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px; border: 1px solid red;"></canvas>
 </div>
-<div style="padding-left: 250px; border: 1px solid #ccc">C</div>
-<div style="padding-left: 250px; width: 300px; height: 300px; border: 1px solid #ddd; ">source code</div>
+<div style="margin-left: 250px; width: 300px; height: 300px; border: 1px solid #ddd; ">source code</div>
 <div style="clear: both;"></div>
+<p>
+<p>
+<canvas id="display" width="450" height="80" style="padding-left: 80px;"></canvas>
+<br/>
+<canvas id="keygrid" width="450" height="170" style="margin-left: 80px"></canvas>
 <table id="data">
-	<tr><th>COND</th>
-		<td id="cc">0</td>
+	<tr><th>D</th>
+		<td id="d10">0</td>
+		<td id="d9">0</td>
+		<td id="d8">0</td>
+		<td id="d7">0</td>
+		<td id="d6">0</td>
+		<td id="d5">0</td>
+		<td id="d4">0</td>
+		<td id="d3">0</td>
+		<td id="d2">0</td>
+		<td id="d1">0</td>
+		<td id="d0">0</td>
 	</tr>
 	<tr><th>A</th>
 		<td id="a10">0</td>
@@ -128,22 +152,22 @@ $(document).ready(function() {
 		<td id="bf1">0</td>
 		<td id="bf0">0</td>
 	</tr>
-	<tr><th>D</th>
-		<td id="d10">0</td>
+	<tr><th>MASK/K</th>
+		<td id="d10" class="mask">0</td>
 		<td id="d9">0</td>
-		<td id="d8">0</td>
+		<td id="d8" class="mask">0</td>
 		<td id="d7">0</td>
 		<td id="d6">0</td>
-		<td id="d5">0</td>
+		<td id="d5" class="mask">0</td>
 		<td id="d4">0</td>
 		<td id="d3">0</td>
 		<td id="d2">0</td>
 		<td id="d1">0</td>
 		<td id="d0">0</td>
 	</tr>
+	<tr class="cond"><th>COND</th>
+		<td colspan=2 id="cc">overflow</td>
+	</tr>
 </table>
-<canvas id="display" width="450" height="80" style="padding-left: 61px;"></canvas>
-<br/>
-<canvas id="keygrid" width="329" height="100" style="border: 1px solid #ddd"></canvas>
 <br/>
 </html>

@@ -66,7 +66,7 @@ var Display = function(elem) {
     this.context.stroke();
   };
 
-  this.context = elem[0].getContext('2d');
-  this.width = elem[0].width;
-  this.height = elem[0].height;
+  this.context = elem.getContext('2d');
+  this.width = elem.width;
+  this.height = elem.height;
 };

@@ -49,11 +49,11 @@
 <script>
 
 $(document).ready(function() {
-  var calcImage = new CalcImage($("#calcImage"));
+  var calcImage = new CalcImage($("#calcImage")[0]);
   var model = new Model();
-  var keygrid = new Keygrid($("#keygrid"), model);
-  var display = new Display($("#display"), model);
-  var display2 = new Display($("#calcDisplay"), model);
+  var keygrid = new Keygrid($("#keygrid")[0], model);
+  var display = new Display($("#display")[0], model);
+  var display2 = new Display($("#calcDisplay")[0], model);
   var sourceWindow = new SourceWindow($("#sourceWindow"), model);
   var parser = new Parser(sourceCode, model);
   var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow);

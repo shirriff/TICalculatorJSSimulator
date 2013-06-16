@@ -2,14 +2,17 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>QUnit basic example</title>
+  <title>Calculator unittests</title>
   <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.11.0.css" >
   <script src="model.js"></script>
+  <script src="keygrid.js"></script>
   <script src="cpu.js"></script>
 </head>
 <body>
   <div id="qunit"></div>
-  <div id="qunit-fixture"></div>
+  <div id="qunit-fixture">
+    <canvas id="keygrid"></canvas>
+  </div>
   <script src="http://code.jquery.com/qunit/qunit-1.11.0.js"></script>
   <script>
 
@@ -64,11 +67,36 @@
     var cpu;
     module("cpu", {
       setup: function() {
-	model = new Model();
-	cpu = new Cpu(model);
-	model.rom = [];
-	model.address = 0x42;
-	}
+        model = new Model();
+        cpu = new Cpu(model);
+        model.rom = [];
+        model.address = 0x42;
+        }
+    });
+
+    test( "D update", function() {
+      model.d = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; // D scan register, d[0] low for D1
+      model.dActive = 1; // Currently active D value 1-10
+      model.address = 0;
+      for (var i = 0; i < 320; i++) {
+        model.rom[i] = NOP;
+      }
+      deepEqual( model.d, [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+      equal( model.dActive, 1);
+      cpu.step();
+      deepEqual( model.d, [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+      equal( model.dActive, 2);
+      for (var i = 0; i < 8; i++) {
+        cpu.step();
+      }
+      deepEqual( model.d, [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1]);
+      equal( model.dActive, 10);
+      cpu.step();
+      deepEqual( model.d, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]);
+      equal( model.dActive, 10);
+      cpu.step();
+      deepEqual( model.d, [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+      equal( model.dActive, 1);
     });
 
     test( "Jump reset taken", function() {
@@ -114,7 +142,7 @@
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, "no overflow");
+      equal( model.ccMeaning, "no overflow", 'ccMeaning');
       deepEqual( model.a, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
     });
 
@@ -124,7 +152,7 @@
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, "no overflow");
+      equal( model.ccMeaning, "no overflow", 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 4], "Result");
     });
 
@@ -134,7 +162,7 @@
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
       equal( model.cc, 1, "ovf");
-      equal( model.ccMeaning, "overflow");
+      equal( model.ccMeaning, "overflow", 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 2], "Result");
     });
 
@@ -143,7 +171,7 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       cpu.step();
       equal( model.cc, 1, "ovf");
-      equal( model.ccMeaning, "overflow");
+      equal( model.ccMeaning, "overflow", 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 9], "Result");
     });
 
@@ -153,7 +181,7 @@
       model.c = [5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5];
       cpu.step();
       equal( model.cc, 1, "ovf");
-      equal( model.ccMeaning, "overflow");
+      equal( model.ccMeaning, "overflow", 'ccMeaning');
       deepEqual( model.c, [5, 6, 7, 8, 9, 0, 1, 2, 0, 4, 5], "Result");
     });
 
@@ -163,7 +191,7 @@
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
       equal( model.cc, 0, "ovf");
-      equal( model.ccMeaning, "");
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3], "Result");
     });
 
@@ -173,7 +201,7 @@
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
       equal( model.cc, 0, "ovf");
-      equal( model.ccMeaning, "");
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.c, [1, 2, 3, 0, 1, 2, 3, 0, 1, 0, 9], "Result");
     });
 
@@ -182,8 +210,8 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       model.c = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, "no overflow");
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, "no overflow", 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 2, 4], "Result");
     });
 
@@ -192,8 +220,8 @@
       model.b = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9];
       model.c = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, "no overflow");
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, "no overflow", 'ccMeaning');
       deepEqual( model.b, [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3], "Result");
     });
 
@@ -202,8 +230,8 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       model.b = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9];
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, "borrow");
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "borrow", 'ccMeaning');
       deepEqual( model.a, [1, 3, 5, 8, 0, 2, 4, 6, 8, 0, 0], "Result");
     });
 
@@ -213,8 +241,8 @@
       model.b = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9];
       model.c = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, "borrow");
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "borrow", 'ccMeaning');
       deepEqual( model.c, [2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2], "Result");
     });
 
@@ -222,8 +250,8 @@
       model.rom[0x42] = SAKA | 1; // K = 4
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, "borrow");
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "borrow", 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 6, 9], "Result");
     });
 
@@ -232,8 +260,8 @@
       model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, "no borrow");
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, "no borrow", 'ccMeaning');
       deepEqual( model.c, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Result");
     });
 
@@ -244,8 +272,8 @@
       model.a = a;
       model.b = b;
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, "not less than");
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, "not less than", 'ccMeaning');
       deepEqual( model.a, a, "register unchanged");
       deepEqual( model.b, b, "register unchanged");
     });
@@ -257,8 +285,8 @@
       model.a = a;
       model.b = b;
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, "less than");
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "less than", 'ccMeaning');
       deepEqual( model.a, a, "register unchanged");
       deepEqual( model.b, b, "register unchanged");
     });
@@ -268,8 +296,8 @@
       var a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 4, 6];
       model.a = a;
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, "not less than");
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, "not less than", 'ccMeaning');
       deepEqual( model.a, a, "register unchanged");
     });
 
@@ -278,8 +306,8 @@
       var a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 4, 6];
       model.a = a;
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, "less than");
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "less than", 'ccMeaning');
       deepEqual( model.a, a, "register unchanged");
     });
 
@@ -290,8 +318,8 @@
       model.c = c;
       model.b = b;
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, "not less than");
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, "not less than", 'ccMeaning');
       deepEqual( model.c, c, "register unchanged");
       deepEqual( model.b, b, "register unchanged");
     });
@@ -303,8 +331,8 @@
       model.c = c;
       model.b = b;
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, "less than");
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "less than", 'ccMeaning');
       deepEqual( model.c, c, "register unchanged");
       deepEqual( model.b, b, "register unchanged");
     });
@@ -314,8 +342,8 @@
       var c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 6];
       model.c = c;
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, "not less than");
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, "not less than", 'ccMeaning');
       deepEqual( model.c, c, "register unchanged");
     });
 
@@ -324,8 +352,8 @@
       var c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 6];
       model.c = c;
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, "less than");
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "less than", 'ccMeaning');
       deepEqual( model.c, c, "register unchanged");
     });
 
@@ -334,7 +362,7 @@
       model.a = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7], "Result");
     });
 
@@ -343,7 +371,7 @@
       model.b = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.b, [1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], "Result");
     });
 
@@ -352,8 +380,21 @@
       model.c = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.c, [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7], "Result");
+    });
+
+    test( "EXAB", function() { // Exchange A and B
+      model.rom[0x42] = EXAB | 9;
+      model.cc = 1;
+      model.ccMeaning = 'oldvalue';
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      model.b = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+      cpu.step();
+      equal( model.cc, 1, "cc");
+      equal( model.ccMeaning, 'oldvalue', 'ccMeaning');
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 4, 4, 4], 'a');
+      deepEqual( model.b, [4, 4, 4, 4, 4, 4, 4, 4, 9, 0, 1], 'b');
     });
 
     test( "SLLA", function() { // Shift A left
@@ -361,7 +402,7 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2]);
     });
 
@@ -370,7 +411,7 @@
       model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.b, [1, 2, 3, 4, 5, 6, 7, 8, 9, 2, 0]);
     });
 
@@ -379,7 +420,7 @@
       model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.c, [2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 0]);
     });
 
@@ -388,7 +429,7 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [0, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2]);
     });
 
@@ -397,7 +438,7 @@
       model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.b, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1]);
     });
 
@@ -406,17 +447,58 @@
       model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.c, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1]);
     });
 
-    test( "AKCN", function() { // Add constant until key
-      model.rom[0x42] = AKCN | 11;
-      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+    test( "AKCN-nokey", function() { // Add constant until key
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
+      model.rom[0x42] = AKCN | 11; // Mask is top 9 digits
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      equal( model.dActive, 1);
+      // Need to count extra 10 step
+      for (var i = 2; i <= 11; i++) {
+        keygrid.update();
+        equal( model.keyStrobe, 0, 'keyStrobe');
+        cpu.step();
+        equal( model.address, 0x42, 'address');
+        equal( model.cc, 0, 'cc');
+        equal( model.ccMeaning, 'no key', 'ccMeaning');
+        deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 9, i - 2, 1, 2]);
+      }
+      keygrid.update();
       cpu.step();
-      equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, 'no overflow');
-      deepEqual( model.c, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1]);
+      equal( model.address, 0x43);
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'no key', 'ccMeaning');
+      // A should be incremented by 10
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 9, 9, 1, 2]);
+    });
+
+    test( "AKCN-key", function() { // scan for key press
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
+      model.rom[0x42] = AKCN | 11; // Mask is top 9 digits
+      model.a = [1, 9, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      model.keyPressed = '2';
+
+      // No key in D1
+      keygrid.update();
+      equal( model.dActive, 1);
+      equal( model.keyStrobe, 0, 'keyStrobe');
+      cpu.step();
+      equal( model.address, 0x42, 'address');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'no key', 'ccMeaning');
+      deepEqual( model.a, [1, 9, 3, 4, 5, 6, 7, 9, 0, 1, 2], 'a advanced');
+
+      // Key in D2, address advances
+      keygrid.update();
+      equal( model.keyStrobe, 1);
+      cpu.step();
+      equal( model.address, 0x43);
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, 'key', 'ccMeaning');
+      deepEqual( model.a, [1, 9, 3, 4, 5, 6, 7, 9, 1, 1, 2], 'a advanced');
     });
 
     test( "AAKAH", function() { // A + K -> A hex
@@ -424,7 +506,7 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 10, 1, 2]);
     });
 
@@ -433,7 +515,7 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 9];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 0]);
     });
 
@@ -442,7 +524,7 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 15];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0]);
     });
 
@@ -451,7 +533,7 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 9];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2]);
     });
 
@@ -460,7 +542,7 @@
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, '');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 15]);
     });
 
@@ -469,34 +551,69 @@
       model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, 'no overflow');
+      equal( model.ccMeaning, 'no overflow', 'ccMeaning');
       deepEqual( model.c, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 8]);
     });
 
     // Flag operation tests
 
-    test( "WAITDK", function() { // wait for display key
-      model.rom[0x42] = WAITD | 0x3; // Most of address is specified by opcode!
+    test( "WAITDK", function() { // Wait for DK
+      model.rom[0x42] = WAITDK | 0x3;
+
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
-      ok(null);
+      // Address held
+      equal( model.address, 0x42, 'address');
+      equal( model.display, 0, 'display');
+
+      // Set DK and address advances
+      model.keyPressed = 'DK';
+      cpu.step();
+      // Note that top bits of address are WAITDK op because opcode and address overlap (!)
+      equal( model.address, (WAITDK | 0x3) & 0x1ff, 'address');
     });
 
-    test( "WAITNO", function() { // wait for key pushed
-      model.rom[0x42] = WAITNO | 0x3; // Most of address is specified by opcode!
+    test( "WAITNO-nokey", function() { // Wait for key
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
+      model.rom[0x42] = WAITNO | 0x5;
+      equal( model.dActive, 1);
+      for (var i = 0; i <= 30; i++) {
+        keygrid.update();
+        equal( model.keyStrobe, 0, 'keyStrobe');
+        cpu.step();
+        equal( model.address, 0x42, 'address');
+      }
+      keygrid.update();
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
-      ok(null);
+      // Address still hasn't advanced
+      equal( model.address, 0x42);
+    });
+
+    test( "WAITNO-key", function() { // scan for key press
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
+      model.rom[0x42] = WAITNO | 0x5;
+      model.keyPressed = '2';
+
+      // No key in D1
+      keygrid.update();
+      equal( model.dActive, 1);
+      equal( model.keyStrobe, 0, 'keyStrobe');
+      cpu.step();
+      equal( model.address, 0x42, 'address');
+
+      // Key in D2, address advances
+      keygrid.update();
+      equal( model.keyStrobe, 1);
+      cpu.step();
+      // Note that top bits of address are WAITNO op because opcode and address overlap (!)
+      equal( model.address, (WAITNO | 0x5) & 0x1ff, 'address');
     });
 
     test( "SFB", function() { // set flag B
       model.rom[0x42] = SFB | 9;
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.bf, [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1]);
     });
 
@@ -504,33 +621,81 @@
       model.rom[0x42] = SFA | 15;
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.af, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
     });
 
     test( "SYNC", function() { // sync to D10
+      // model starts in D1
       model.rom[0x42] = SYNC;
+      for (var i = 2; i <= 10; i++) {
+        cpu.step();
+        equal( model.dActive, i);
+        equal( model.address, 0x42);
+      }
+      deepEqual( model.d, [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1]);
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
-      ok(null);
+      equal( model.dActive, 10); // Two time periods for D10
+      deepEqual( model.d, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]);
+      equal( model.address, 0x42);
+      cpu.step();
+      equal( model.dActive, 1);
+      deepEqual( model.d, [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+      equal( model.address, 0x43); // Address advances
     });
 
-    test( "SCAN", function() { // scan for key press
+    test( "SCAN-nokey", function() { // scan for key press
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
       model.rom[0x42] = SCAN;
+      model.display = 0; // Display off
+      equal( model.dActive, 1);
+      // Need to count extra 10 step
+      for (var i = 2; i <= 11; i++) {
+        keygrid.update();
+        equal( model.keyStrobe, 0, 'keyStrobe');
+        cpu.step();
+        equal( model.address, 0x42, 'address');
+        equal( model.cc, 0, 'cc');
+        equal( model.ccMeaning, 'no key', 'ccMeaning');
+        equal( model.display, 1, 'display latch');
+      }
+      keygrid.update();
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
-      ok(null);
+      equal( model.address, 0x43);
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'no key', 'ccMeaning');
+    });
+
+    test( "SCAN-key", function() { // scan for key press
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
+      model.rom[0x42] = SCAN;
+      model.keyPressed = '2';
+
+      // No key in D1
+      keygrid.update();
+      equal( model.dActive, 1);
+      equal( model.keyStrobe, 0, 'keyStrobe');
+      cpu.step();
+      equal( model.address, 0x42, 'address');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'no key', 'ccMeaning');
+
+      // Key in D2, address advances
+      keygrid.update();
+      equal( model.keyStrobe, 1);
+      cpu.step();
+      equal( model.address, 0x43);
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, 'key', 'ccMeaning');
     });
 
     test( "ZFB", function() { // set flag B
       model.rom[0x42] = ZFB | 9;
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.bf, [0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0]);
     });
 
@@ -538,49 +703,49 @@
       model.rom[0x42] = ZFA | 15;
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.af, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     });
 
-    test( "TFB", function() { // test flag B, unclear meaning for multi-bit flags
+    test( "TFB-set", function() { // test flag B, unclear meaning for multi-bit flags
       model.rom[0x42] = TFB | 0;
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, 'flag clear');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'flag clear', 'ccMeaning');
     });
 
-    test( "TFB", function() { // test flag B
+    test( "TFB-clear", function() { // test flag B
       model.rom[0x42] = TFB | 1;
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, 'flag set');
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, 'flag set', 'ccMeaning');
     });
 
-    test( "TFA", function() { // test flag A
+    test( "TFA-set", function() { // test flag A
       model.rom[0x42] = TFA | 2;
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, 'flag clear');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'flag clear', 'ccMeaning');
     });
 
-    test( "TFA", function() { // test flag A
+    test( "TFA-clear", function() { // test flag A
       model.rom[0x42] = TFA | 3;
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, 'flag set');
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, 'flag set', 'ccMeaning');
     });
 
     test( "FFB", function() { // flip flag B
       model.rom[0x42] = FFB | 9;
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.bf, [0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1]);
     });
 
@@ -588,8 +753,8 @@
       model.rom[0x42] = FFA | 15;
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.af, [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]);
     });
 
@@ -598,8 +763,8 @@
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, 'flags equal');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'flags equal', 'ccMeaning');
     });
 
     test( "CF-equal", function() { // compare flags
@@ -607,8 +772,8 @@
       model.af = [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0];
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, 'flags equal');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'flags equal', 'ccMeaning');
     });
 
     test( "CF-notequal", function() { // compare flags
@@ -616,8 +781,8 @@
       model.af = [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1];
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 1);
-      equal( model.ccMeaning, 'flags not equal');
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, 'flags not equal', 'ccMeaning');
     });
 
     test( "EXF", function() { // exchange flags
@@ -625,8 +790,8 @@
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       model.bf = [0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0];
       cpu.step();
-      equal( model.cc, 0);
-      equal( model.ccMeaning, '');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.af, [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0]);
       deepEqual( model.bf, [0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0]);
     });

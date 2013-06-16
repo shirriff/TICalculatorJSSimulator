@@ -5,9 +5,10 @@ var Keygrid = function(elem, model) {
     ['C', '=', '+', '-', '*', '/', 'CE', '.', '0', 'D'],
     ['', '', '', '', '', '', '', '', '', '']];
 
-  this.context = elem[0].getContext('2d');
-  this.width = elem[0].width;
-  this.height = elem[0].height;
+  this.model = model;
+  this.context = elem.getContext('2d');
+  this.width = elem.width;
+  this.height = elem.height;
 
   var BOXSIZE = 30;
   var XMARGIN = 10;
@@ -16,6 +17,7 @@ var Keygrid = function(elem, model) {
   var YSPACING = 45;
 
   this.update = function() {
+    this.model.keyStrobe = 0;
     this.context.save();
     this.context.transform(1, 0, 0, 1, .5, .5);
     for (var col = 0; col < 9; col++) {
@@ -30,7 +32,13 @@ var Keygrid = function(elem, model) {
     this.context.textBaseline = 'middle';
     this.context.strokeStyle = 'black';
     for (var row = 0; row < 3; row++) {
-      this.context.strokeStyle = (this.keys[row][model.dActive] == model.keyPressed) ? '#f77' : '#ccc';
+      if (model.keyPressed && this.keys[row][model.dActive - 1] == model.keyPressed) {
+	// Key pressed in current row, so highlight row and activate strobe
+	this.model.keyStrobe = 1; // Cleared at beginning of method
+        this.context.strokeStyle = '#f77';
+      } else {
+        this.context.strokeStyle = '#ccc';
+      }
       this.context.beginPath();
       this.context.moveTo(0, YMARGIN + BOXSIZE / 2 + YSPACING * row);
       this.context.lineTo(this.width, YMARGIN + BOXSIZE / 2 + YSPACING * row);
@@ -40,7 +48,8 @@ var Keygrid = function(elem, model) {
       for (var col = 0; col < 9; col++) {
 	this.context.beginPath();
 	this.context.rect(XMARGIN + XSPACING * col, YMARGIN + YSPACING * row, BOXSIZE, BOXSIZE);
-        this.context.fillStyle = this.keys[row][col] == model.keyPressed ? '#aaf' : 'white';
+	// Highlight pressed key.
+	this.context.fillStyle = (model.keyPressed && this.keys[row][col] == model.keyPressed) ? '#aaf' : 'white';
 	this.context.fill();
 	this.context.stroke();
 	this.context.fillStyle = 'black';

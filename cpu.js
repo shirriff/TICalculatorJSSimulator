@@ -47,6 +47,8 @@ var Cpu = function(model) {
     var instruction = this.model.rom[this.model.address];
     var classBits = instruction >> 9;
     var nextAddress = this.model.address + 1;
+    // Update D state first, since SYNC etc operate on trailing edge.
+    this.updateD();
     if (classBits == 3) {
       // Register instruction
       var opcode = (instruction >> 4) & 0x1f;
@@ -110,6 +112,7 @@ var Cpu = function(model) {
 	  this.copy(this.getMask(), this.model.c);
 	  break;
 	case 19: // EXAB: exchange A and B
+	  this.exchange(this.model.a, this.model.b);
 	  break;
 	case 20: // SLLA: shift A left
 	  this.sll(this.model.a);
@@ -129,8 +132,23 @@ var Cpu = function(model) {
 	case 25: // SRLC: shift C right
 	  this.srl(this.model.c);
 	  break;
-	case 26: // AKCN: A+K -> A until key down or D11
-	  // TODO
+	case 26: // AKCN: A+K -> A until key down or D11 [sic]
+	  this.add(this.model.a, this.getMask(), this.model.a);
+	  if (this.model.keyStrobe) {
+	    this.model.cc = 1;
+	    this.model.ccMeaning = 'key';
+	    // Moves to next instruction
+	  } else {
+	    if (this.model.dActive != 1) {
+	      // Move to next instruction at end of D10
+	      nextAddress = this.model.address;
+	    } else {
+	      // A bit unclear, but assume we want to add total of 10, so subtract final add
+	      this.sub(this.model.a, this.getMask(), this.model.a);
+	    }
+	    this.model.cc = 0;
+	    this.model.ccMeaning = 'no key';
+	  }
 	  break;
 	case 27: // AAKAH A+K -> A hex
 	  this.add(this.model.a, this.getMask(), this.model.a, 1 /* hex */);
@@ -157,10 +175,24 @@ var Cpu = function(model) {
 	case 16: // NOP
 	  break;
 	case 17: // WAITDK: wait for display key
-	  this.add(this.model.a, this.model.b, this.model.a);
+	  this.model.display = 0;
+	  if (this.model.keyPressed == 'DK') {
+	    // Jump
+	    nextAddress = instruction & 0x1ff;
+	  } else {
+	    // Hold address until DK pressed
+	    nextAddress = this.model.address;
+	  }
 	  break;
 	case 18: // WAITNO: wait for key or address register overflow
-	  this.add(this.model.a, this.getMask(), this.model.a);
+	  this.model.display = 0;
+	  if (this.model.keyStrobe) {
+	    // Jump
+	    nextAddress = instruction & 0x1ff;
+	  } else {
+	    // Hold address until key pressed or address overflow (TODO)
+	    nextAddress = this.model.address;
+	  }
 	  break;
 	case 19: // SFB: set flag B
 	  this.writeFlag(this.model.bf, 1);
@@ -168,9 +200,24 @@ var Cpu = function(model) {
 	case 20: // SFA: set flag A
 	  this.writeFlag(this.model.af, 1);
 	  break;
-	case 21: // SYNC: sync to D10
+	case 21: // SYNC (SYNCH): hold address until end of D10
+	  if (this.model.dActive != 1) {
+	    nextAddress = this.model.address;
+	  }
 	  break;
-	case 22: // SCAN: wait for key
+	case 22: // SCAN (SCANNO): wait for key
+	  this.model.display = 1; // Reset display power off latch
+	  if (this.model.keyStrobe) {
+	    this.model.cc = 1;
+	    this.model.ccMeaning = 'key';
+	  } else {
+	    this.model.cc = 0;
+	    this.model.ccMeaning = 'no key';
+	    if (this.model.dActive != 1) {
+	      // Hold address until end of D10
+	      nextAddress = this.model.address;
+	    }
+	  }
 	  break;
 	case 23: // ZFB: zero flag B
 	  this.writeFlag(this.model.bf, 0);
@@ -196,7 +243,7 @@ var Cpu = function(model) {
 	case 30: // NOP
 	  break;
 	case 31: // EXF: exchange flags
-	  this.exchangeFlags(this.model.af, this.model.bf);
+	  this.exchange(this.model.af, this.model.bf);
 	  break;
 	default:
 	  alert('Bad instruction ' + instruction);
@@ -226,6 +273,7 @@ var Cpu = function(model) {
       alert('Bad instruction code ' + instruction);
     }
     this.model.address = nextAddress;
+
   };
 
   this.add = function(src1, src2, dst, hex) {
@@ -360,7 +408,7 @@ var Cpu = function(model) {
     this.model.ccMeaning = cc ? 'flags not equal' : 'flags equal';
   };
 
-  this.exchangeFlags = function(src1, src2) {
+  this.exchange = function(src1, src2) {
     var maskVec = this.getMask();
     for (var i = 10; i >= 0; i--) {
       if (maskVec[i] === ' ') {
@@ -372,8 +420,6 @@ var Cpu = function(model) {
 	src2[i] = t;
       }
     }
-    this.model.cc = 0;
-    this.model.ccMeaning = '';
   };
 
   this.testFlag = function(src) {
@@ -392,4 +438,18 @@ var Cpu = function(model) {
     this.model.cc = cc;
     this.model.ccMeaning = cc ? 'flag set' : 'flag clear';
   };
+
+  this.updateD = function() {
+    var d11 = this.model.d.splice(10, 1)[0];
+    this.model.d.splice(0, 0, d11);
+    this.model.dActive += 1;
+    // Stay in D10 for two cycles, then go to D1
+    if (this.model.dActive == 11) {
+      if (d11 == 0) {
+	this.model.dActive = 1;
+      } else {
+	this.model.dActive = 10;
+      }
+    }
+  }
 };

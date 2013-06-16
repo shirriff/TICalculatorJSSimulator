@@ -13,13 +13,29 @@
   <script src="http://code.jquery.com/qunit/qunit-1.11.0.js"></script>
   <script>
 
+    var WAITDK = (2<<9) | (17<<4);
+    var WAITNO = (2<<9) | (18<<4);
+    var SFB = (2<<9) | (19<<4);
+    var SFA = (2<<9) | (20<<4);
+    var SYNC = (2<<9) | (21<<4);
+    var SCAN = (2<<9) | (22<<4);
+    var ZFB = (2<<9) | (23<<4);
+    var ZFA = (2<<9) | (24<<4);
+    var TFB = (2<<9) | (25<<4);
+    var TFA = (2<<9) | (26<<4);
+    var FFB = (2<<9) | (27<<4);
+    var FFA = (2<<9) | (28<<4);
+    var CF = (2<<9) | (29<<4);
+    var NOP = (2<<9) | (30<<4);
+    var EXF = (2<<9) | (31<<4);
+
     var AABA = (3<<9) | (0<<4); // A+B -> A
     var AAKA = (3<<9) | (1<<4); // A+K -> A
     var AAKC = (3<<9) | (2<<4); // A+K -> C
     var ABOA = (3<<9) | (3<<4); // B -> A
     var ABOC = (3<<9) | (4<<4); // B -> C
     var ACKA = (3<<9) | (5<<4); // C+K -> A
-    var AKCB = (3<<9) | (6<<4); // C+K -> B
+    var ACKB = (3<<9) | (6<<4); // C+K -> B
     var SABA = (3<<9) | (7<<4); // A-B -> A
     var SABC = (3<<9) | (8<<4); // A-B -> C
     var SAKA = (3<<9) | (9<<4); // A-K -> A
@@ -44,101 +60,575 @@
     var SAKAH = (3<<9) | (28<<4); // SAKAH A-K -> A hex
     var ACKC = (3<<9) | (29<<4); // C+K -> C
 
+    var model;
+    var cpu;
+    module("cpu", {
+      setup: function() {
+	model = new Model();
+	cpu = new Cpu(model);
+	model.rom = [];
+	model.address = 0x42;
+	}
+    });
+
     test( "Jump reset taken", function() {
-      var model = new Model();
-      var cpu = new Cpu(model);
-      model.rom = [];
       model.rom[0x42] = (0 << 9) | 0x123;
-      model.address = 0x42;
       cpu.step();
       equal( model.address, 0x123, "Expect jump taken" );
     });
 
     test( "Jump reset not taken", function() {
-      var model = new Model();
-      var cpu = new Cpu(model);
-      model.rom = [];
       model.rom[0x42] = (0 << 9) | 0x123;
-      model.address = 0x42;
       model.cc = 1;
       cpu.step();
       equal( model.address, 0x43, "Expect jump not taken" );
     });
 
     test( "Jump set taken", function() {
-      var model = new Model();
-      var cpu = new Cpu(model);
-      model.rom = [];
       model.rom[0x42] = (1 << 9) | 0x123;
-      model.address = 0x42;
       model.cc = 1;
       cpu.step();
       equal( model.address, 0x123, "Expect jump taken" );
     });
 
     test( "Jump set not taken", function() {
-      var model = new Model();
-      var cpu = new Cpu(model);
-      model.rom = [];
       model.rom[0x42] = (1 << 9) | 0x123;
-      model.address = 0x42;
       model.cc = 0;
       cpu.step();
       equal( model.address, 0x43, "Expect jump not taken" );
     });
 
-    test( "mask", function() {
-      var model = new Model();
-      var cpu = new Cpu(model);
-      model.rom = [];
-      model.rom[0x42] = (3 << 9) | (0 << 4) | 0;
+    test( "mask0", function() {
+      model.rom[0x42] = 0; // Mask 0
+      deepEqual(cpu.getMask(), [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 7]);
+    });
+
+    test( "mask11", function() {
+      model.rom[0x42] = 11; // Mask 0
+      deepEqual(cpu.getMask(), [0, 0, 0, 0, 0, 0, 0, 0, 1, ' ', ' ']);
+    });
+
+    test( "AABA, mask 15 (all)", function() {
+      model.rom[0x42] = AABA | 15;
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, 0, "No overflow");
-      deepEqual( [1,2,3], [1,2,3], "Compare");
-      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1], "Result");
+      equal( model.ccMeaning, "no overflow");
+      deepEqual( model.a, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
     });
 
-    test( "AABA, no mask", function() {
-      var model = new Model();
-      var cpu = new Cpu(model);
-      model.rom = [];
-      model.rom[0x42] = (3 << 9) | (0 << 4) | 0;
+    test( "AABA, mask 0", function() {
+      model.rom[0x42] = AABA | 0;
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, 0, "No overflow");
-      deepEqual( [1,2,3], [1,2,3], "Compare");
-      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1], "Result");
+      equal( model.ccMeaning, "no overflow");
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 4], "Result");
     });
 
-    test( "AKA, mask 0", function() { // Copy K to A
-      var model = new Model();
-      var cpu = new Cpu(model);
-      model.rom = [];
+    test( "AABA, mask 0, carry", function() {
+      model.rom[0x42] = AABA | 0;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 1, "ovf");
+      equal( model.ccMeaning, "overflow");
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 2], "Result");
+    });
+
+    test( "AAKA, mask 2, carry", function() {
+      model.rom[0x42] = AAKA | 2;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      cpu.step();
+      equal( model.cc, 1, "ovf");
+      equal( model.ccMeaning, "overflow");
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 9], "Result");
+    });
+
+    test( "AAKC", function() {
+      model.rom[0x42] = AAKC | 2;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.c = [5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5];
+      cpu.step();
+      equal( model.cc, 1, "ovf");
+      equal( model.ccMeaning, "overflow");
+      deepEqual( model.c, [5, 6, 7, 8, 9, 0, 1, 2, 0, 4, 5], "Result");
+    });
+
+    test( "ABOA", function() {
+      model.rom[0x42] = ABOA | 9;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0, "ovf");
+      equal( model.ccMeaning, "");
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3], "Result");
+    });
+
+    test( "ABOC", function() {
+      model.rom[0x42] = ABOC | 11;
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0, "ovf");
+      equal( model.ccMeaning, "");
+      deepEqual( model.c, [1, 2, 3, 0, 1, 2, 3, 0, 1, 0, 9], "Result");
+    });
+
+    test( "ACKA", function() {
+      model.rom[0x42] = ACKA | 13; // K = 01
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.c = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, "no overflow");
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 2, 4], "Result");
+    });
+
+    test( "ACKB", function() {
+      model.rom[0x42] = ACKB | 15; // K = 0
+      model.b = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9];
+      model.c = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, "no overflow");
+      deepEqual( model.b, [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3], "Result");
+    });
+
+    test( "SABA", function() {
+      model.rom[0x42] = SABA | 15;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.b = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9];
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, "borrow");
+      deepEqual( model.a, [1, 3, 5, 8, 0, 2, 4, 6, 8, 0, 0], "Result");
+    });
+
+    test( "SABC", function() {
+      model.rom[0x42] = SABC | 7;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.b = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9];
+      model.c = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, "borrow");
+      deepEqual( model.c, [2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2], "Result");
+    });
+
+    test( "SAKA", function() {
+      model.rom[0x42] = SAKA | 1; // K = 4
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, "borrow");
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 6, 9], "Result");
+    });
+
+    test( "SCBC", function() {
+      model.rom[0x42] = SCBC | 15;
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, "no borrow");
+      deepEqual( model.c, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Result");
+    });
+
+    test( "CAB", function() {
+      model.rom[0x42] = CAB | 9;
+      var a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      var b = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+      model.a = a;
+      model.b = b;
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, "not less than");
+      deepEqual( model.a, a, "register unchanged");
+      deepEqual( model.b, b, "register unchanged");
+    });
+
+    test( "CAB-2", function() {
+      model.rom[0x42] = CAB | 15;
+      var a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      var b = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+      model.a = a;
+      model.b = b;
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, "less than");
+      deepEqual( model.a, a, "register unchanged");
+      deepEqual( model.b, b, "register unchanged");
+    });
+
+    test( "CAK", function() {
+      model.rom[0x42] = CAK | 2;
+      var a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 4, 6];
+      model.a = a;
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, "not less than");
+      deepEqual( model.a, a, "register unchanged");
+    });
+
+    test( "CAK-2", function() {
+      model.rom[0x42] = CAK | 0;
+      var a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 4, 6];
+      model.a = a;
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, "less than");
+      deepEqual( model.a, a, "register unchanged");
+    });
+
+    test( "CCB", function() {
+      model.rom[0x42] = CCB | 9;
+      var c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      var b = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+      model.c = c;
+      model.b = b;
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, "not less than");
+      deepEqual( model.c, c, "register unchanged");
+      deepEqual( model.b, b, "register unchanged");
+    });
+
+    test( "CCB-2", function() {
+      model.rom[0x42] = CCB | 15;
+      var c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      var b = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+      model.c = c;
+      model.b = b;
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, "less than");
+      deepEqual( model.c, c, "register unchanged");
+      deepEqual( model.b, b, "register unchanged");
+    });
+
+    test( "CCK", function() {
+      model.rom[0x42] = CCK | 2;
+      var c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 6];
+      model.c = c;
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, "not less than");
+      deepEqual( model.c, c, "register unchanged");
+    });
+
+    test( "CCK-2", function() {
+      model.rom[0x42] = CCK | 1;
+      var c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 6];
+      model.c = c;
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, "less than");
+      deepEqual( model.c, c, "register unchanged");
+    });
+
+    test( "AKA", function() { // Copy K to A
       model.rom[0x42] = AKA | 0;
-      model.address = 0x42;
       model.a = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
       cpu.step();
       equal( model.cc, 0, "No ovf");
       equal( model.ccMeaning, '');
-      deepEqual( model.a, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7], "Result");
+      deepEqual( model.a, [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7], "Result");
     });
 
-    test( "AKB, mask 8", function() { // Copy K to B
-      var model = new Model();
-      var cpu = new Cpu(model);
-      model.rom = [];
+    test( "AKB", function() { // Copy K to B
       model.rom[0x42] = AKB | 8;
-      model.address = 0x42;
       model.b = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
       cpu.step();
       equal( model.cc, 0, "No ovf");
       equal( model.ccMeaning, '');
       deepEqual( model.b, [1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], "Result");
+    });
+
+    test( "AKC", function() { // Copy K to C
+      model.rom[0x42] = AKC | 0;
+      model.c = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.c, [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7], "Result");
+    });
+
+    test( "SLLA", function() { // Shift A left
+      model.rom[0x42] = SLLA | 11;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.a, [2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2]);
+    });
+
+    test( "SLLB", function() { // Shift B left
+      model.rom[0x42] = SLLB | 13;
+      model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.b, [1, 2, 3, 4, 5, 6, 7, 8, 9, 2, 0]);
+    });
+
+    test( "SLLC", function() { // Shift C left
+      model.rom[0x42] = SLLC | 15;
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.c, [2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 0]);
+    });
+
+    test( "SRLA", function() { // Shift A right
+      model.rom[0x42] = SRLA | 11;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.a, [0, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2]);
+    });
+
+    test( "SRLB", function() { // Shift B right
+      model.rom[0x42] = SRLB | 13;
+      model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.b, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1]);
+    });
+
+    test( "SRLC", function() { // Shift C right
+      model.rom[0x42] = SRLC | 15;
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.c, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1]);
+    });
+
+    test( "AKCN", function() { // Add constant until key
+      model.rom[0x42] = AKCN | 11;
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, 'no overflow');
+      deepEqual( model.c, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1]);
+    });
+
+    test( "AAKAH", function() { // A + K -> A hex
+      model.rom[0x42] = AAKAH | 11;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 10, 1, 2]);
+    });
+
+    test( "AAKAH-carry", function() { // A + K -> A hex
+      model.rom[0x42] = AAKAH | 0;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 9];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 0]);
+    });
+
+    test( "AAKAH-carry2", function() { // A + K -> A hex
+      model.rom[0x42] = AAKAH | 13;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 15];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0]);
+    });
+
+    test( "SAKAH", function() { // A - K -> A hex
+      model.rom[0x42] = SAKAH | 0;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 9];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2]);
+    });
+
+    test( "SAKAH-borrow", function() { // A - K -> A hex
+      model.rom[0x42] = SAKAH | 13;
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, '');
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 15]);
+    });
+
+    test( "ACKC", function() { // C + K -> C
+      model.rom[0x42] = ACKC | 0;
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, 'no overflow');
+      deepEqual( model.c, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 8]);
+    });
+
+    // Flag operation tests
+
+    test( "WAITDK", function() { // wait for display key
+      model.rom[0x42] = WAITD | 0x3; // Most of address is specified by opcode!
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      ok(null);
+    });
+
+    test( "WAITNO", function() { // wait for key pushed
+      model.rom[0x42] = WAITNO | 0x3; // Most of address is specified by opcode!
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      ok(null);
+    });
+
+    test( "SFB", function() { // set flag B
+      model.rom[0x42] = SFB | 9;
+      model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      deepEqual( model.bf, [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1]);
+    });
+
+    test( "SFA", function() { // set flag A
+      model.rom[0x42] = SFA | 15;
+      model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      deepEqual( model.af, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    });
+
+    test( "SYNC", function() { // sync to D10
+      model.rom[0x42] = SYNC;
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      ok(null);
+    });
+
+    test( "SCAN", function() { // scan for key press
+      model.rom[0x42] = SCAN;
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      ok(null);
+    });
+
+    test( "ZFB", function() { // set flag B
+      model.rom[0x42] = ZFB | 9;
+      model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      deepEqual( model.bf, [0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0]);
+    });
+
+    test( "ZFA", function() { // zero flag A
+      model.rom[0x42] = ZFA | 15;
+      model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      deepEqual( model.af, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    });
+
+    test( "TFB", function() { // test flag B, unclear meaning for multi-bit flags
+      model.rom[0x42] = TFB | 0;
+      model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, 'flag clear');
+    });
+
+    test( "TFB", function() { // test flag B
+      model.rom[0x42] = TFB | 1;
+      model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, 'flag set');
+    });
+
+    test( "TFA", function() { // test flag A
+      model.rom[0x42] = TFA | 2;
+      model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, 'flag clear');
+    });
+
+    test( "TFA", function() { // test flag A
+      model.rom[0x42] = TFA | 3;
+      model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, 'flag set');
+    });
+
+    test( "FFB", function() { // flip flag B
+      model.rom[0x42] = FFB | 9;
+      model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      deepEqual( model.bf, [0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1]);
+    });
+
+    test( "FFA", function() { // flip flag A
+      model.rom[0x42] = FFA | 15;
+      model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      deepEqual( model.af, [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]);
+    });
+
+    test( "CF", function() { // compare flags
+      model.rom[0x42] = CF | 15;
+      model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, 'flags equal');
+    });
+
+    test( "CF-equal", function() { // compare flags
+      model.rom[0x42] = CF | 9;
+      model.af = [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0];
+      model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, 'flags equal');
+    });
+
+    test( "CF-notequal", function() { // compare flags
+      model.rom[0x42] = CF | 9;
+      model.af = [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1];
+      model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      cpu.step();
+      equal( model.cc, 1);
+      equal( model.ccMeaning, 'flags not equal');
+    });
+
+    test( "EXF", function() { // exchange flags
+      model.rom[0x42] = EXF | 9;
+      model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      model.bf = [0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0];
+      cpu.step();
+      equal( model.cc, 0);
+      equal( model.ccMeaning, '');
+      deepEqual( model.af, [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0]);
+      deepEqual( model.bf, [0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0]);
     });
   </script>
 </body>

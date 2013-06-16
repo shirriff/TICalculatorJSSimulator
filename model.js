@@ -1,6 +1,7 @@
 // Data model
 var Model = function() {
-  // Arrays match chip values, i.e. a[0] is displayed on right
+  // Important: Array order matches display order, not bit order.
+  // I.e. a[0] is high-order digit S10, a[10] is low-order digit S0.
   this.a = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   this.b = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   this.c = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];

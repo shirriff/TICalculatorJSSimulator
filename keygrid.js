@@ -21,7 +21,7 @@ var Keygrid = function(elem, model) {
     this.context.save();
     this.context.transform(1, 0, 0, 1, .5, .5);
     for (var col = 0; col < 9; col++) {
-      this.context.strokeStyle = model.d[11 - col] ? '#f77' : '#ccc';
+      this.context.strokeStyle = model.d[col] ? '#ccc' : '#f77';
       this.context.beginPath();
       this.context.moveTo(XMARGIN + BOXSIZE / 2 + XSPACING * col, 0);
       this.context.lineTo(XMARGIN + BOXSIZE / 2 + XSPACING * col, this.height);

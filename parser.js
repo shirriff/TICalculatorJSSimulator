@@ -13,9 +13,8 @@ var Parser = function(code, model) {
     if (m) {
       var addr = parseInt(m[2], 16);
       model.source[addr] = code[i];
-      var opcode = parseInt(m[3].replace(' ', ''), 2); // instruction in binary
+      var opcode = parseInt(m[3].replace(/ /g, ''), 2); // instruction in binary
       model.rom[addr] = opcode;
-      console.log('code: ' + addr + ' ' + opcode);
       if (addr != curAddr) {
 	alert('Unexpected addr in ' + code[i]);
       }

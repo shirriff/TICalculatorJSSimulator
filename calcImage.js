@@ -63,6 +63,6 @@ var CalcImage = function(elem, model) {
     }
   });
 
-  this.width = elem.width;
-  this.height = elem.height;
+  this.width = elem[0].width;
+  this.height = elem[0].height;
 };

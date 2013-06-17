@@ -1,4 +1,4 @@
-var Display = function(elem) {
+var Display = function(elem, model) {
   // 000
   // 1 2
   // 333
@@ -18,10 +18,21 @@ var Display = function(elem) {
     '-': [3]
   }
 
-  this.update = function(model) {
+  this.model = model;
+
+  this.update = function(singleDigit) {
+    var str = "";
+    var dpt = 0;
+    for (var i = 0; i < 9; i++) {
+      str += this.model.a[i];
+      if (this.model.b[i] == 2) {
+	dpt = i;
+      }
+    }
+    this.write(str, dpt);
   };
 
-  this.write = function(str) {
+  this.write = function(str, dpt) {
     this.context.save();
     this.context.transform(this.width / 9, 0, 0, this.height / 2, 0, 0);
     this.context.fillStyle = 'black';
@@ -30,6 +41,7 @@ var Display = function(elem) {
     for (var i = 0; i < str.length; i++) {
       this.writeSymbol(str[i], i);
     }
+    this.writeDecimal(dpt);
     this.context.restore();
   };
      
@@ -48,25 +60,31 @@ var Display = function(elem) {
   var YOFF = .1; // Offset of vertical ends from horizontal position
   var LINEWIDTH = .1;
   var segments = [
-    [XL + XOFF, YT, XR - YOFF, YT],
+    [XL + XOFF, YT, XR - XOFF, YT],
     [XL, YT + YOFF, XL, YM - YOFF],
     [XR, YT + YOFF, XR, YM - YOFF],
-    [XL + XOFF, YM, XR - YOFF, YM],
+    [XL + XOFF, YM, XR - XOFF, YM],
     [XL, YM + YOFF, XL, YB - YOFF],
     [XR, YM + YOFF, XR, YB - YOFF],
-    [XL + XOFF, YB, XR - YOFF, YB]];
+    [XL + XOFF, YB, XR - XOFF, YB],
+    [XR + 2 * XOFF, YB, XR + 2 * XOFF + 0.01, YB] // decimal point
+      ];
 
   this.writeOneSegment = function(seg, pos) {
     this.context.strokeStyle = 'red';
     this.context.lineCap = 'round';
-    this.context.lineWidth = LINEWIDTH;
+    this.context.lineWidth = seg < 7 ? LINEWIDTH : LINEWIDTH * 1.5;
     this.context.beginPath();
     this.context.moveTo(segments[seg][0] + pos, segments[seg][1]);
     this.context.lineTo(segments[seg][2] + pos, segments[seg][3]);
     this.context.stroke();
   };
 
-  this.context = elem.getContext('2d');
-  this.width = elem.width;
-  this.height = elem.height;
+  this.writeDecimal = function(pos) {
+    this.writeOneSegment(7, pos);
+  }
+
+  this.context = elem[0].getContext('2d');
+  this.width = elem[0].width;
+  this.height = elem[0].height;
 };

@@ -6,6 +6,6 @@ var SourceWindow = function(elem, model) {
   this.elem = elem;
 
   this.update = function() {
-    elem.innerText = 'abc\ndef\nghi\njkl\n';
+    elem[0].innerText = model.source[model.address].substring(11);
   }
 };

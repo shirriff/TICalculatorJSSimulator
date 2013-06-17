@@ -2,7 +2,7 @@
 var Model = function() {
   // Important: Array order matches display order, not bit order.
   // I.e. a[0] is high-order digit S10, a[10] is low-order digit S0.
-  this.a = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Register A
+  this.a = [9, 8, 7, 6, 5, 4, 3, 2, 0, 1, 0]; // Register A
   this.b = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Register B
   this.c = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Register C
   this.af = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Flags A
@@ -20,4 +20,5 @@ var Model = function() {
   this.keyStrobe = 0;
   this.address = 0;
   this.display = 1; // Flag for display on
+  this.mask = null;
 };

@@ -49,10 +49,12 @@ var Cpu = function(model) {
     var nextAddress = this.model.address + 1;
     // Update D state first, since SYNC etc operate on trailing edge.
     this.updateD();
+    this.model.mask = null;
     if (classBits == 3) {
       // Register instruction
       var opcode = (instruction >> 4) & 0x1f;
       var maskBits = instruction & 0xf;
+      this.model.mask = this.getMask();
       switch (opcode) {
 	case 0: // AABA: A+B -> A
 	  this.add(this.model.a, this.model.b, this.model.a);
@@ -171,6 +173,7 @@ var Cpu = function(model) {
       // Flag instruction
       var opcode = (instruction >> 4) & 0x1f;
       var maskBits = instruction & 0xf;
+      this.model.mask = this.getMask();
       switch (opcode) {
 	case 16: // NOP
 	  break;
@@ -183,6 +186,7 @@ var Cpu = function(model) {
 	    // Hold address until DK pressed
 	    nextAddress = this.model.address;
 	  }
+	  this.model.mask = null;
 	  break;
 	case 18: // WAITNO: wait for key or address register overflow
 	  this.model.display = 0;
@@ -193,6 +197,7 @@ var Cpu = function(model) {
 	    // Hold address until key pressed or address overflow (TODO)
 	    nextAddress = this.model.address;
 	  }
+	  this.model.mask = null;
 	  break;
 	case 19: // SFB: set flag B
 	  this.writeFlag(this.model.bf, 1);
@@ -204,6 +209,9 @@ var Cpu = function(model) {
 	  if (this.model.dActive != 1) {
 	    nextAddress = this.model.address;
 	  }
+	  this.model.mask = null;
+	  this.model.cc = 0;
+	  this.model.ccMeaning = '';
 	  break;
 	case 22: // SCAN (SCANNO): wait for key
 	  this.model.display = 1; // Reset display power off latch
@@ -218,6 +226,7 @@ var Cpu = function(model) {
 	      nextAddress = this.model.address;
 	    }
 	  }
+	  this.model.mask = null;
 	  break;
 	case 23: // ZFB: zero flag B
 	  this.writeFlag(this.model.bf, 0);
@@ -273,7 +282,6 @@ var Cpu = function(model) {
       alert('Bad instruction code ' + instruction);
     }
     this.model.address = nextAddress;
-
   };
 
   this.add = function(src1, src2, dst, hex) {

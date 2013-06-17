@@ -11,21 +11,28 @@
 <script src="parser.js"></script>
 <script src="model.js"></script>
 <script src="keygrid.js"></script>
+<script src="registers.js"></script>
 <script src="controller.js"></script>
 <script src="sourceWindow.js"></script>
 <script src="cpu.js"></script>
 <style type="text/css">
+  button {
+    border: 1px solid #ccc;
+    width: 33px;
+    height: 33px;
+    cursor: pointer;
+  }
 	.cond, .cond th, .cond tr, .cond td {
 		border: none !important;
 		line-height: 2em;
 		text-align: left !important;
 	}
-	#data {
+	#registers {
 		border-collapse: collapse;
 		font-family: arial;
 		border-right: 1px solid #ddd;
 	}
-	#data th {
+	#registers th {
 		font-weight: bold;
 		text-align: right;
 		padding-right: 10px;
@@ -33,7 +40,7 @@
 		max-width: 70px;
 		width: 70px;
 	}
-	#data td {
+	#registers td {
 		text-align: center;
 		min-width: 48px;
 		width: 48px;
@@ -43,21 +50,31 @@
 	.mask {
 		background-color: #fcc;
 	}
+	#sourceWindow {
+	  width: 500px;
+	  height: 300px;
+	  border: 1px solid #ddd;
+	  font-family: courier, fixed;
+	  font-size: 12px;
+        }
+	  
 </style>
 
 
 <script>
 
 $(document).ready(function() {
-  var calcImage = new CalcImage($("#calcImage")[0]);
+  var calcImage = new CalcImage($("#calcImage"));
   var model = new Model();
   var keygrid = new Keygrid($("#keygrid")[0], model);
-  var display = new Display($("#display")[0], model);
-  var display2 = new Display($("#calcDisplay")[0], model);
+  var registers = new Registers($("#registers")[0], model);
+  var display = new Display($("#display"), model);
+  var display2 = new Display($("#calcDisplay"), model);
   var sourceWindow = new SourceWindow($("#sourceWindow"), model);
   var parser = new Parser(sourceCode, model);
-  var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow);
-  controller.run();
+  var cpu = new Cpu(model);
+  var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
+    registers, $("#playButton"), $("#stopButton"), $("#stepButton"));
 });
 
 
@@ -68,107 +85,113 @@ $(document).ready(function() {
 <img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400 style="position: absolute; top: 0; left: 0;";></img>
 <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px; border: 1px solid red;"></canvas>
 </div>
-<div id="sourceWindow" style="margin-left: 250px; width: 300px; height: 300px; border: 1px solid #ddd; ">source code</div>
+<div style="margin-left: 250px; ">
+<button id="playButton" title="run" style="background:url(images/play.png) no-repeat 2px 2px;"></button>
+<button id="stopButton" title="stop" style="background:url(images/stop.png) no-repeat 2px 2px;"></button>
+<button id="stepButton" title="step" style="background:url(images/step.png) no-repeat 2px 2px;"></button>
+<br/>
+<div id="sourceWindow">source code</div>
+</div>
 <div style="clear: both;"></div>
 <p>
 <p>
 <canvas id="display" width="450" height="80" style="padding-left: 80px;"></canvas>
 <br/>
 <canvas id="keygrid" width="450" height="170" style="margin-left: 80px"></canvas>
-<table id="data">
+<table id="registers">
 	<tr><th>D</th>
-		<td id="d10">0</td>
-		<td id="d9">0</td>
-		<td id="d8">0</td>
-		<td id="d7">0</td>
-		<td id="d6">0</td>
-		<td id="d5">0</td>
-		<td id="d4">0</td>
-		<td id="d3">0</td>
-		<td id="d2">0</td>
-		<td id="d1">0</td>
-		<td id="d0">0</td>
+		<td id="registers-d10">x</td>
+		<td id="registers-d9">x</td>
+		<td id="registers-d8">x</td>
+		<td id="registers-d7">x</td>
+		<td id="registers-d6">x</td>
+		<td id="registers-d5">x</td>
+		<td id="registers-d4">x</td>
+		<td id="registers-d3">x</td>
+		<td id="registers-d2">x</td>
+		<td id="registers-d1">x</td>
+		<td id="registers-d0">x</td>
 	</tr>
 	<tr><th>A</th>
-		<td id="a10">0</td>
-		<td id="a9">0</td>
-		<td id="a8">0</td>
-		<td id="a7">0</td>
-		<td id="a6">0</td>
-		<td id="a5">0</td>
-		<td id="a4">0</td>
-		<td id="a3">0</td>
-		<td id="a2">0</td>
-		<td id="a1">0</td>
-		<td id="a0">0</td>
+		<td id="registers-a10">x</td>
+		<td id="registers-a9">x</td>
+		<td id="registers-a8">x</td>
+		<td id="registers-a7">x</td>
+		<td id="registers-a6">x</td>
+		<td id="registers-a5">x</td>
+		<td id="registers-a4">x</td>
+		<td id="registers-a3">x</td>
+		<td id="registers-a2">x</td>
+		<td id="registers-a1">x</td>
+		<td id="registers-a0">x</td>
 	</tr>
 	<tr><th>B</th>
-		<td id="b10">0</td>
-		<td id="b9">0</td>
-		<td id="b8">0</td>
-		<td id="b7">0</td>
-		<td id="b6">0</td>
-		<td id="b5">0</td>
-		<td id="b4">0</td>
-		<td id="b3">0</td>
-		<td id="b2">0</td>
-		<td id="b1">0</td>
-		<td id="b0">0</td>
+		<td id="registers-b10">x</td>
+		<td id="registers-b9">x</td>
+		<td id="registers-b8">x</td>
+		<td id="registers-b7">x</td>
+		<td id="registers-b6">x</td>
+		<td id="registers-b5">x</td>
+		<td id="registers-b4">x</td>
+		<td id="registers-b3">x</td>
+		<td id="registers-b2">x</td>
+		<td id="registers-b1">x</td>
+		<td id="registers-b0">x</td>
 	</tr>
 	<tr><th>C</th>
-		<td id="c10">0</td>
-		<td id="c9">0</td>
-		<td id="c8">0</td>
-		<td id="c7">0</td>
-		<td id="c6">0</td>
-		<td id="c5">0</td>
-		<td id="c4">0</td>
-		<td id="c3">0</td>
-		<td id="c2">0</td>
-		<td id="c1">0</td>
-		<td id="c0">0</td>
+		<td id="registers-c10">x</td>
+		<td id="registers-c9">x</td>
+		<td id="registers-c8">x</td>
+		<td id="registers-c7">x</td>
+		<td id="registers-c6">x</td>
+		<td id="registers-c5">x</td>
+		<td id="registers-c4">x</td>
+		<td id="registers-c3">x</td>
+		<td id="registers-c2">x</td>
+		<td id="registers-c1">x</td>
+		<td id="registers-c0">x</td>
 	</tr>
 	<tr><th>AF</th>
-		<td id="af10">0</td>
-		<td id="af9">0</td>
-		<td id="af8">0</td>
-		<td id="af7">0</td>
-		<td id="af6">0</td>
-		<td id="af5">0</td>
-		<td id="af4">0</td>
-		<td id="af3">0</td>
-		<td id="af2">0</td>
-		<td id="af1">0</td>
-		<td id="af0">0</td>
+		<td id="registers-af10">x</td>
+		<td id="registers-af9">x</td>
+		<td id="registers-af8">x</td>
+		<td id="registers-af7">x</td>
+		<td id="registers-af6">x</td>
+		<td id="registers-af5">x</td>
+		<td id="registers-af4">x</td>
+		<td id="registers-af3">x</td>
+		<td id="registers-af2">x</td>
+		<td id="registers-af1">x</td>
+		<td id="registers-af0">x</td>
 	</tr>
 	<tr><th>BF</th>
-		<td id="bf10">0</td>
-		<td id="bf9">0</td>
-		<td id="bf8">0</td>
-		<td id="bf7">0</td>
-		<td id="bf6">0</td>
-		<td id="bf5">0</td>
-		<td id="bf4">0</td>
-		<td id="bf3">0</td>
-		<td id="bf2">0</td>
-		<td id="bf1">0</td>
-		<td id="bf0">0</td>
+		<td id="registers-bf10">x</td>
+		<td id="registers-bf9">x</td>
+		<td id="registers-bf8">x</td>
+		<td id="registers-bf7">x</td>
+		<td id="registers-bf6">x</td>
+		<td id="registers-bf5">x</td>
+		<td id="registers-bf4">x</td>
+		<td id="registers-bf3">x</td>
+		<td id="registers-bf2">x</td>
+		<td id="registers-bf1">x</td>
+		<td id="registers-bf0">x</td>
 	</tr>
 	<tr><th>MASK/K</th>
-		<td id="d10" class="mask">0</td>
-		<td id="d9">0</td>
-		<td id="d8" class="mask">0</td>
-		<td id="d7">0</td>
-		<td id="d6">0</td>
-		<td id="d5" class="mask">0</td>
-		<td id="d4">0</td>
-		<td id="d3">0</td>
-		<td id="d2">0</td>
-		<td id="d1">0</td>
-		<td id="d0">0</td>
+		<td id="registers-m10" class="mask">x</td>
+		<td id="registers-m9">x</td>
+		<td id="registers-m8" class="mask">x</td>
+		<td id="registers-m7">x</td>
+		<td id="registers-m6">x</td>
+		<td id="registers-m5" class="mask">x</td>
+		<td id="registers-m4">x</td>
+		<td id="registers-m3">x</td>
+		<td id="registers-m2">x</td>
+		<td id="registers-m1">x</td>
+		<td id="registers-m0">x</td>
 	</tr>
 	<tr class="cond"><th>COND</th>
-		<td colspan=2 id="cc">overflow</td>
+		<td colspan=2 id="registers-cc">overflow</td>
 	</tr>
 </table>
 <br/>

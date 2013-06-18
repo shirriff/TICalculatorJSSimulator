@@ -62,6 +62,8 @@
     var AAKAH = (3<<9) | (27<<4); // AAKAH A+K -> A hex
     var SAKAH = (3<<9) | (28<<4); // SAKAH A-K -> A hex
     var ACKC = (3<<9) | (29<<4); // C+K -> C
+    var BKO = 8 << 7; // Branch on KO key
+    var BKP = 9 << 7; // Branch on KP key
 
     var model;
     var cpu;
@@ -81,19 +83,14 @@
       for (var i = 0; i < 320; i++) {
         model.rom[i] = NOP;
       }
-      deepEqual( model.d, [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
-      equal( model.dActive, 1);
       cpu.step();
       deepEqual( model.d, [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
       equal( model.dActive, 2);
-      for (var i = 0; i < 8; i++) {
+      for (var i = 3; i <= 10; i++) {
         cpu.step();
+	equal( model.dActive, i);
       }
       deepEqual( model.d, [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1]);
-      equal( model.dActive, 10);
-      cpu.step();
-      deepEqual( model.d, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]);
-      equal( model.dActive, 10);
       cpu.step();
       deepEqual( model.d, [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
       equal( model.dActive, 1);
@@ -456,21 +453,20 @@
       model.rom[0x42] = AKCN | 11; // Mask is top 9 digits
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
       equal( model.dActive, 1);
-      // Need to count extra 10 step
-      for (var i = 2; i <= 11; i++) {
+      for (var i = 2; i <= 10; i++) {
         keygrid.update();
         equal( model.keyStrobe, 0, 'keyStrobe');
         cpu.step();
         equal( model.address, 0x42, 'address');
         equal( model.cc, 0, 'cc');
-        equal( model.ccMeaning, 'no key', 'ccMeaning');
+        equal( model.ccMeaning, 'no overflow', 'ccMeaning');
         deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 9, i - 2, 1, 2]);
       }
       keygrid.update();
       cpu.step();
       equal( model.address, 0x43);
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, 'no key', 'ccMeaning');
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, 'overflow', 'ccMeaning');
       // A should be incremented by 10
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 9, 9, 1, 2]);
     });
@@ -488,16 +484,16 @@
       cpu.step();
       equal( model.address, 0x42, 'address');
       equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, 'no key', 'ccMeaning');
+      equal( model.ccMeaning, 'no overflow', 'ccMeaning');
       deepEqual( model.a, [1, 9, 3, 4, 5, 6, 7, 9, 0, 1, 2], 'a advanced');
 
       // Key in D2, address advances
       keygrid.update();
-      equal( model.keyStrobe, 1);
+      equal( model.keyStrobe, 'KN');
       cpu.step();
       equal( model.address, 0x43);
-      equal( model.cc, 1, 'cc');
-      equal( model.ccMeaning, 'key', 'ccMeaning');
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, 'no overflow', 'ccMeaning');
       deepEqual( model.a, [1, 9, 3, 4, 5, 6, 7, 9, 1, 1, 2], 'a advanced');
     });
 
@@ -602,7 +598,7 @@
 
       // Key in D2, address advances
       keygrid.update();
-      equal( model.keyStrobe, 1);
+      equal( model.keyStrobe, 'KN');
       cpu.step();
       // Note that top bits of address are WAITNO op because opcode and address overlap (!)
       equal( model.address, (WAITNO | 0x5) & 0x1ff, 'address');
@@ -635,9 +631,6 @@
         equal( model.address, 0x42);
       }
       deepEqual( model.d, [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1]);
-      cpu.step();
-      equal( model.dActive, 10); // Two time periods for D10
-      deepEqual( model.d, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]);
       equal( model.address, 0x42);
       cpu.step();
       equal( model.dActive, 1);
@@ -650,8 +643,7 @@
       model.rom[0x42] = SCAN;
       model.display = 0; // Display off
       equal( model.dActive, 1);
-      // Need to count extra 10 step
-      for (var i = 2; i <= 11; i++) {
+      for (var i = 2; i <= 10; i++) {
         keygrid.update();
         equal( model.keyStrobe, 0, 'keyStrobe');
         cpu.step();
@@ -683,7 +675,7 @@
 
       // Key in D2, address advances
       keygrid.update();
-      equal( model.keyStrobe, 1);
+      equal( model.keyStrobe, 'KN');
       cpu.step();
       equal( model.address, 0x43);
       equal( model.cc, 1, 'cc');
@@ -794,6 +786,56 @@
       equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.af, [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0]);
       deepEqual( model.bf, [0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0]);
+    });
+
+    test( "BKO-branch", function() {
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
+      model.rom[0x42] = BKO | 0x55;
+      model.keyPressed = '+';
+      equal( model.dActive, 1);
+
+      for (var i = 2; i < 4; i++) {
+        keygrid.update();
+        cpu.step();
+        equal( model.dActive, i, 'dActive');
+        equal( model.address, 0x43, 'address');
+        model.address = 0x42; // Try instruction again
+      }
+      keygrid.update();
+      cpu.step();
+      equal( model.address, 0x55);
+    });
+
+    test( "BKO-nobranch", function() {
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
+      model.rom[0x42] = BKO | 0x55;
+      model.keyPressed = '3';
+      equal( model.dActive, 1);
+
+      for (var i = 2; i <= 10; i++) {
+        keygrid.update();
+        cpu.step();
+        equal( model.dActive, i);
+        equal( model.address, 0x43);
+        model.address = 0x42; // Try instruction again
+      }
+    });
+
+    // No key uses KP, so branch not tested
+
+    test( "BKP-nobranch", function() {
+      var keygrid = new Keygrid(document.getElementById("keygrid"), model);
+      model.rom[0x42] = BKP | 0x55;
+      model.keyPressed = '*';
+      equal( model.dActive, 1);
+
+      for (var i = 2; i <= 10; i++) {
+        keygrid.update();
+        cpu.step();
+        equal( model.dActive, i);
+        equal( model.address, 0x43);
+        model.address = 0x42; // Try instruction again
+      }
     });
   </script>
 </body>

@@ -14,7 +14,7 @@ var Cpu = function(model) {
     " 0         ", // M7
     "1          ", // M8
     "        000", // M9
-    "00         ", // M10
+    "01         ", // M10
     "000000001  ", // M11
     "000000000  ", // M12
     "         01", // M13
@@ -46,15 +46,11 @@ var Cpu = function(model) {
   this.step = function() {
     var instruction = this.model.rom[this.model.address];
     var classBits = instruction >> 9;
+    var opcode = (instruction >> 4) & 0x1f;
     var nextAddress = this.model.address + 1;
-    // Update D state first, since SYNC etc operate on trailing edge.
-    this.updateD();
-    this.model.mask = null;
     if (classBits == 3) {
       // Register instruction
-      var opcode = (instruction >> 4) & 0x1f;
       var maskBits = instruction & 0xf;
-      this.model.mask = this.getMask();
       switch (opcode) {
 	case 0: // AABA: A+B -> A
 	  this.add(this.model.a, this.model.b, this.model.a);
@@ -135,21 +131,22 @@ var Cpu = function(model) {
 	  this.srl(this.model.c);
 	  break;
 	case 26: // AKCN: A+K -> A until key down or D11 [sic]
+	  // Patent says sets condition if key down, but real behavior
+	  // is to set condition if overflow (i.e. no key down)
 	  this.add(this.model.a, this.getMask(), this.model.a);
 	  if (this.model.keyStrobe) {
-	    this.model.cc = 1;
-	    this.model.ccMeaning = 'key';
-	    // Moves to next instruction
-	  } else {
-	    if (this.model.dActive != 1) {
-	      // Move to next instruction at end of D10
-	      nextAddress = this.model.address;
-	    } else {
-	      // A bit unclear, but assume we want to add total of 10, so subtract final add
-	      this.sub(this.model.a, this.getMask(), this.model.a);
-	    }
 	    this.model.cc = 0;
-	    this.model.ccMeaning = 'no key';
+	    this.model.ccMeaning = 'no overflow';
+	    // Advance to next instruction
+	  } else if (this.model.dActive != 10) {
+	    // Hold at current instruction and continue scan
+	    nextAddress = this.model.address;
+	    this.model.cc = 0;
+	    this.model.ccMeaning = 'no overflow';
+	  } else {
+	    // For state d10, advance to next instruction
+	    this.model.cc = 1;
+	    this.model.ccMeaning = 'overflow';
 	  }
 	  break;
 	case 27: // AAKAH A+K -> A hex
@@ -171,9 +168,7 @@ var Cpu = function(model) {
       }
     } else if ((instruction >> 8) == 5) {
       // Flag instruction
-      var opcode = (instruction >> 4) & 0x1f;
       var maskBits = instruction & 0xf;
-      this.model.mask = this.getMask();
       switch (opcode) {
 	case 16: // NOP
 	  break;
@@ -186,7 +181,6 @@ var Cpu = function(model) {
 	    // Hold address until DK pressed
 	    nextAddress = this.model.address;
 	  }
-	  this.model.mask = null;
 	  break;
 	case 18: // WAITNO: wait for key or address register overflow
 	  this.model.display = 0;
@@ -197,7 +191,6 @@ var Cpu = function(model) {
 	    // Hold address until key pressed or address overflow (TODO)
 	    nextAddress = this.model.address;
 	  }
-	  this.model.mask = null;
 	  break;
 	case 19: // SFB: set flag B
 	  this.writeFlag(this.model.bf, 1);
@@ -206,10 +199,9 @@ var Cpu = function(model) {
 	  this.writeFlag(this.model.af, 1);
 	  break;
 	case 21: // SYNC (SYNCH): hold address until end of D10
-	  if (this.model.dActive != 1) {
+	  if (this.model.dActive != 10) {
 	    nextAddress = this.model.address;
 	  }
-	  this.model.mask = null;
 	  this.model.cc = 0;
 	  this.model.ccMeaning = '';
 	  break;
@@ -221,12 +213,11 @@ var Cpu = function(model) {
 	  } else {
 	    this.model.cc = 0;
 	    this.model.ccMeaning = 'no key';
-	    if (this.model.dActive != 1) {
+	    if (this.model.dActive != 10) {
 	      // Hold address until end of D10
 	      nextAddress = this.model.address;
 	    }
 	  }
-	  this.model.mask = null;
 	  break;
 	case 23: // ZFB: zero flag B
 	  this.writeFlag(this.model.bf, 0);
@@ -270,18 +261,28 @@ var Cpu = function(model) {
       }
     } else if ((instruction >> 7) == 8) {
       // Jump if key down on KO (BKO)
-      if (0) {
+      if (this.model.keyStrobe == 'KO') {
 	nextAddress = instruction & 0x1ff;
       }
     } else if ((instruction >> 7) == 9) {
       // Jump if key down on KP (BKP)
-      if (0) {
+      if (this.model.keyStrobe == 'KP') {
 	nextAddress = instruction & 0x1ff;
       }
     } else {
       alert('Bad instruction code ' + instruction);
     }
     this.model.address = nextAddress;
+    // Put the mask for the next instruction in the model for display
+    if (classBits == 3 || (classBits == 2 && opcode > 18 &&
+	  opcode != 21 && opcode != 22)) {
+      this.model.mask = this.getMask();
+    } else {
+      // Don't show mask for instructions that don't need it: WAITDK, WAITNO, SYNC, SCAN, jumps
+      this.model.mask = null;
+    }
+    // Update D state
+    this.updateD();
   };
 
   this.add = function(src1, src2, dst, hex) {
@@ -333,6 +334,7 @@ var Cpu = function(model) {
 
   this.compare = function(src1, src2) {
     this.sub(src1, src2, []);
+    // Compare sets condition if not borrow
     this.model.ccMeaning = this.model.cc ? "less than" : "not less than";
   };
 
@@ -448,16 +450,11 @@ var Cpu = function(model) {
   };
 
   this.updateD = function() {
-    var d11 = this.model.d.splice(10, 1)[0];
-    this.model.d.splice(0, 0, d11);
+    var d10 = this.model.d.splice(9, 1)[0];
+    this.model.d.splice(0, 0, d10);
     this.model.dActive += 1;
-    // Stay in D10 for two cycles, then go to D1
-    if (this.model.dActive == 11) {
-      if (d11 == 0) {
-	this.model.dActive = 1;
-      } else {
-	this.model.dActive = 10;
-      }
+    if (this.model.dActive > 10) {
+      this.model.dActive = 1;
     }
   }
 };

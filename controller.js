@@ -50,14 +50,15 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   this.sourceWindow.update();
 
   this.update = function() {
-    that.keygrid.update();
     that.cpu.step();
+    // Display the current registers
+    that.registers.update();
     that.display.update();
     that.display2.update(1 /* single */);
-    that.registers.update();
     that.sourceWindow.update();
+    that.keygrid.update();
     if (running) {
-      setTimeout(that.update, 100);
+      setTimeout(that.update, 1);
     }
   };
 };

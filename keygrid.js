@@ -34,7 +34,7 @@ var Keygrid = function(elem, model) {
     for (var row = 0; row < 3; row++) {
       if (model.keyPressed && this.keys[row][model.dActive - 1] == model.keyPressed) {
 	// Key pressed in current row, so highlight row and activate strobe
-	this.model.keyStrobe = 1; // Cleared at beginning of method
+	this.model.keyStrobe = ['KN', 'KO', 'KP'][row]; // Cleared at beginning of method
         this.context.strokeStyle = '#f77';
       } else {
         this.context.strokeStyle = '#ccc';

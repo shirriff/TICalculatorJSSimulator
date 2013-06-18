@@ -7,16 +7,18 @@ var Model = function() {
   this.c = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Register C
   this.af = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Flags A
   this.bf = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Flags B
-  // D-scan register is a bit confusing. The D register is an 11-bit
-  // sift register with a single 0 bit shifted right each D state.
-  // The states are called D1 to D10.
-  // I'm assuming that the last two bits both correspond to D10.
+  // The states are called D1 to D10.  The last bit is never set
+  // d is sort of a combination of the 10-bit digit scan register and the 11-bit D-scan register.
+  // In reality, all 11 bits of the D-scan register are used, but at varying S cycles.
+  // The digit scan register is clocked at S9 phase 3. Thus 11 shifts of D-scan take the same time
+  // as 10 shifts of digit scan.
   this.d = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; // D scan register, d[0] low for D1
-  this.dActive = 1; // Currently active D value 1-10
+  // Currently active D value 1-11. d[dActive-1] == 0
+  this.dActive = 1;
   this.cc = 0;
   this.ccMeaning = '';
   this.keyPressed = null;
-  // 1 if a keyboard input line is active, i.e. dActive and keyPressed match in the key matrix
+  // 'KO' or 'KP' if a keyboard input line is active, i.e. dActive and keyPressed match in the key matrix
   this.keyStrobe = 0;
   this.address = 0;
   this.display = 1; // Flag for display on

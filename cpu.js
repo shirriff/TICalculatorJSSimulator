@@ -183,7 +183,6 @@ var Cpu = function(model) {
 	  }
 	  break;
 	case 18: // WAITNO: wait for key or address register overflow
-	  this.model.display = 0;
 	  if (this.model.keyStrobe) {
 	    // Jump
 	    nextAddress = instruction & 0x1ff;

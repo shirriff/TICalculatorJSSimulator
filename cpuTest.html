@@ -581,6 +581,7 @@
         equal( model.keyStrobe, 0, 'keyStrobe');
         cpu.step();
         equal( model.address, 0x42, 'address');
+        equal( model.display, 1);
       }
       keygrid.update();
       cpu.step();
@@ -597,8 +598,10 @@
       keygrid.update();
       equal( model.dActive, 1);
       equal( model.keyStrobe, 0, 'keyStrobe');
+      equal( model.display, 1);
       cpu.step();
       equal( model.address, 0x42, 'address');
+      equal( model.display, 1);
 
       // Key in D2, address advances
       keygrid.update();

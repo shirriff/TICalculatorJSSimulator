@@ -24,4 +24,5 @@ var Model = function(objectCode) {
   this.address = 0;
   this.display = 1; // Flag for display on
   this.mask = null;
+  this.showDisplayScan = 0;
 };

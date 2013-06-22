@@ -1,6 +1,6 @@
 // Source window
 var SourceWindow = function(elem, model, sourceCode) {
-  var height = 300 / 16; // height in lines
+  var height = 360 / 12; // height in lines
   var top = 0;
   var highlighted = null;
 

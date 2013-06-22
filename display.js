@@ -15,18 +15,28 @@ var Display = function(elem, model) {
     '7': [0, 2, 5],
     '8': [0, 1, 2, 3, 4, 5, 6],
     '9': [0, 1, 2, 3, 5, 6],
-    '-': [3]
+    '-': [3],
+    ' ': [],
   }
-
-  this.model = model;
 
   this.update = function(singleDigit) {
     var str = "";
     var dpt = 0;
+    var zeroSuppress = 1;
     for (var i = 0; i < 9; i++) {
-      str += this.model.a[i];
-      if (this.model.b[i] == 2) {
+      if (i == 8 || model.a[i] != 0) {
+	zeroSuppress = 0;
+      }
+      if (model.a[i] == 0 && zeroSuppress) {
+	str += ' ';
+      } else if (model.a[i] == 14) {
+        str += model.a[i];
+      } else {
+        str += model.a[i];
+      }
+      if (model.b[i] == 2) {
 	dpt = i;
+	zeroSuppress = 0;
       }
     }
     this.write(str, dpt);
@@ -37,6 +47,9 @@ var Display = function(elem, model) {
     this.context.transform(this.width / 9, 0, 0, this.height / 2, 0, 0);
     this.context.fillStyle = 'black';
     this.context.fillRect(0, 0, 9, 2);
+    if (!model.display) {
+      return;
+    }
     this.context.beginPath();
     for (var i = 0; i < str.length; i++) {
       this.writeSymbol(str[i], i);
@@ -71,7 +84,11 @@ var Display = function(elem, model) {
       ];
 
   this.writeOneSegment = function(seg, pos) {
-    this.context.strokeStyle = 'red';
+    if (model.showDisplayScan) {
+      this.context.strokeStyle = (model.dActive - 1) == pos ? 'red' : '#800';
+    } else {
+      this.context.strokeStyle = 'red';
+    }
     this.context.lineCap = 'round';
     this.context.lineWidth = seg < 7 ? LINEWIDTH : LINEWIDTH * 1.5;
     this.context.beginPath();

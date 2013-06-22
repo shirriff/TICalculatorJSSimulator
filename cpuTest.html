@@ -100,6 +100,7 @@
       model.rom[0x42] = (0 << 9) | 0x123;
       cpu.step();
       equal( model.address, 0x123, "Expect jump taken" );
+      equal( model.cc, 0, "");
     });
 
     test( "Jump reset not taken", function() {
@@ -107,6 +108,7 @@
       model.cc = 1;
       cpu.step();
       equal( model.address, 0x43, "Expect jump not taken" );
+      equal( model.cc, 0, "");
     });
 
     test( "Jump set taken", function() {
@@ -114,6 +116,7 @@
       model.cc = 1;
       cpu.step();
       equal( model.address, 0x123, "Expect jump taken" );
+      equal( model.cc, 0, "");
     });
 
     test( "Jump set not taken", function() {
@@ -121,6 +124,7 @@
       model.cc = 0;
       cpu.step();
       equal( model.address, 0x43, "Expect jump not taken" );
+      equal( model.cc, 0, "");
     });
 
     test( "mask0", function() {

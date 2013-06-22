@@ -8,7 +8,6 @@
 <script src="calcImage.js"></script>
 <script src="display.js"></script>
 <script src="sourceCode.js"></script>
-<script src="parser.js"></script>
 <script src="model.js"></script>
 <script src="keygrid.js"></script>
 <script src="registers.js"></script>
@@ -65,13 +64,12 @@
 
 $(document).ready(function() {
   var calcImage = new CalcImage($("#calcImage"));
-  var model = new Model();
+  var model = new Model(sourceCode, objectCode);
   var keygrid = new Keygrid($("#keygrid")[0], model);
   var registers = new Registers($("#registers")[0], model);
   var display = new Display($("#display"), model);
   var display2 = new Display($("#calcDisplay"), model);
   var sourceWindow = new SourceWindow($("#sourceWindow"), model);
-  var parser = new Parser(sourceCode, model);
   var cpu = new Cpu(model);
   var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
     registers, $("#playButton"), $("#stopButton"), $("#stepButton"));
@@ -90,7 +88,7 @@ $(document).ready(function() {
 <button id="stopButton" title="stop" style="background:url(images/stop.png) no-repeat 2px 2px;"></button>
 <button id="stepButton" title="step" style="background:url(images/step.png) no-repeat 2px 2px;"></button>
 <br/>
-<div id="sourceWindow">source code</div>
+<textarea id="sourceWindow" width=80 height=25>source code</textarea>
 </div>
 <div style="clear: both;"></div>
 <p>

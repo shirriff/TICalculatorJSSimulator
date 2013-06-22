@@ -6,6 +6,11 @@ var SourceWindow = function(elem, model) {
   this.elem = elem;
 
   this.update = function() {
-    elem[0].innerText = model.source[model.address].substring(11);
+    var s = '';
+    for (var i = 0; i < 15 && model.address + i < 320; i++) {
+      var line = model.source[model.address + i];
+      s += line + '\n';
+    }
+    elem[0].innerText = s;
   }
 };

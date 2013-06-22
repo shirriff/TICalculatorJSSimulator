@@ -254,21 +254,29 @@ var Cpu = function(model) {
       if (this.model.cc == 0) {
 	nextAddress = instruction & 0x1ff;
       }
+      this.model.cc = 0; // Clear after jump
+      this.model.ccMeaning = '';
     } else if (classBits == 1) {
       // jump if set: BID, BIO, BILT, BIC, BINE
       if (this.model.cc == 1) {
 	nextAddress = instruction & 0x1ff;
       }
+      this.model.cc = 0; // Clear after jump
+      this.model.ccMeaning = '';
     } else if ((instruction >> 7) == 8) {
       // Jump if key down on KO (BKO)
       if (this.model.keyStrobe == 'KO') {
 	nextAddress = instruction & 0x1ff;
       }
+      this.model.cc = 0; // Clear after jump
+      this.model.ccMeaning = '';
     } else if ((instruction >> 7) == 9) {
       // Jump if key down on KP (BKP)
       if (this.model.keyStrobe == 'KP') {
 	nextAddress = instruction & 0x1ff;
       }
+      this.model.cc = 0; // Clear after jump
+      this.model.ccMeaning = '';
     } else {
       alert('Bad instruction code ' + instruction);
     }

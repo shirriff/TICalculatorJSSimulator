@@ -1,6 +1,6 @@
 // Controller
 var Controller = function(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
-    registers, playButton, stopButton, stepButton) {
+    registers, instruction, playButton, stopButton, stepButton) {
   this.calcImage = calcImage;
   this.model = model;
   this.keygrid = keygrid;
@@ -19,45 +19,46 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
     keygrid.update();
   };
 
-  var running = 0;
+  model.running = 0;
   var that = this;
   playButton.click(function() {
       playButton.hide();
       stopButton.show();
-      running = 1;
+      model.running = 1;
       that.update();
       });
   stopButton.click(function() {
       stopButton.hide();
       playButton.show();
-      running = 0;
+      model.running = 0;
       });
   stepButton.click(function() {
-      if (running) {
+      if (model.running) {
 	stopButton.hide();
 	playButton.show();
-	running = 0;
+	model.running = 0;
       } else {
         that.update();
       }
       });
   stopButton.hide();
 
-  this.keygrid.update();
-  this.display.update();
-  this.display2.update(1 /* single */);
-  this.registers.update();
-  this.sourceWindow.update();
+  var updateInt = function() {
+    keygrid.update();
+    display.update();
+    display2.update();
+    registers.update();
+    instruction.update();
+    sourceWindow.update();
+  }
+
+  updateInt();
 
   this.update = function() {
     that.cpu.step();
-    // Display the current registers
-    that.registers.update();
-    that.display.update();
-    that.display2.update(1 /* single */);
-    that.sourceWindow.update();
+    updateInt();
     that.keygrid.update();
-    if (running) {
+    if (model.running) {
       setTimeout(that.update, 1);
     }
   };

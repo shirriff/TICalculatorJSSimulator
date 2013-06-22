@@ -6,15 +6,19 @@
 
 <script src="jquery.min.js"></script>
 <script src="calcImage.js"></script>
-<script src="display.js"></script>
-<script src="sourceCode.js"></script>
-<script src="model.js"></script>
-<script src="keygrid.js"></script>
-<script src="registers.js"></script>
 <script src="controller.js"></script>
-<script src="sourceWindow.js"></script>
 <script src="cpu.js"></script>
+<script src="display.js"></script>
+<script src="instruction.js"></script>
+<script src="keygrid.js"></script>
+<script src="model.js"></script>
+<script src="registers.js"></script>
+<script src="sourceCode.js"></script>
+<script src="sourceWindow.js"></script>
 <style type="text/css">
+  body {
+    font-family: arial;
+  }
   button {
     border: 1px solid #ccc;
     width: 33px;
@@ -28,7 +32,6 @@
   }
   #registers {
     border-collapse: collapse;
-    font-family: arial;
     border-right: 1px solid #ddd;
   }
   #registers th {
@@ -53,12 +56,16 @@
     font-size: 14px;
     line-height: 1em;
     width: 500px;
-    height: 360px;
+    height: 336px;
     border: 1px solid #ddd;
     font-family: courier, fixed;
     font-size: 12px;
     overflow: hidden;
-        }
+  }
+
+  div#instruction {
+    margin-top: 10px;
+  }
     
   div#sourceWindow div {
     font-family: courier, fixed;
@@ -92,8 +99,9 @@ $(document).ready(function() {
   var display2 = new Display($("#calcDisplay"), model);
   var sourceWindow = new SourceWindow($("#sourceWindow"), model, sourceCode);
   var cpu = new Cpu(model);
+  var instruction = new Instruction($("#instruction"), model);
   var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
-    registers, $("#playButton"), $("#stopButton"), $("#stepButton"));
+    registers, instruction, $("#playButton"), $("#stopButton"), $("#stepButton"));
 });
 
 
@@ -101,15 +109,16 @@ $(document).ready(function() {
 
 </body>
 <div style="position: relative; float: left; height:400px;">
-<img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400 style="position: absolute; top: 0; left: 0;";></img>
-<canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
+  <img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400 style="position: absolute; top: 0; left: 0;";></img>
+  <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
 </div>
 <div style="margin-left: 250px; ">
-<button id="playButton" title="run" style="background:url(images/play.png) no-repeat 2px 2px;"></button>
-<button id="stopButton" title="stop" style="background:url(images/stop.png) no-repeat 2px 2px;"></button>
-<button id="stepButton" title="step" style="background:url(images/step.png) no-repeat 2px 2px;"></button>
-<br/>
-<div id="sourceWindowContainer"><div id="sourceWindow" height=360></div></div>
+  <button id="playButton" title="run" style="background:url(images/play.png) no-repeat 2px 2px;"></button>
+  <button id="stopButton" title="stop" style="background:url(images/stop.png) no-repeat 2px 2px;"></button>
+  <button id="stepButton" title="step" style="background:url(images/step.png) no-repeat 2px 2px;"></button>
+  <br/>
+  <div id="sourceWindowContainer"><div id="sourceWindow"></div></div>
+  <div id="instruction"></div>
 </div>
 <div style="clear: both;"></div>
 <p>

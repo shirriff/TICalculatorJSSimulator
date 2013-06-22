@@ -21,7 +21,7 @@ var Display = function(elem, model) {
 
   this.update = function(singleDigit) {
     var str = "";
-    var dpt = 0;
+    var dpt = -1;
     var zeroSuppress = 1;
     for (var i = 0; i < 9; i++) {
       if (i == 8 || model.a[i] != 0) {
@@ -54,7 +54,9 @@ var Display = function(elem, model) {
     for (var i = 0; i < str.length; i++) {
       this.writeSymbol(str[i], i);
     }
-    this.writeDecimal(dpt);
+    if (dpt >= 0) {
+      this.writeDecimal(dpt);
+    }
     this.context.restore();
   };
      

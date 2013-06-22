@@ -404,8 +404,6 @@ var Cpu = function(model) {
         dest[i] = (val < 0) ? (1 - dest[i]) : val;
       }
     }
-    this.model.cc = 0;
-    this.model.ccMeaning = '';
   };
 
   this.compareFlags = function(src1, src2) {

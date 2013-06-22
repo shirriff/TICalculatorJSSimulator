@@ -692,18 +692,20 @@
     test( "ZFB", function() { // set flag B
       model.rom[0x42] = ZFB | 9;
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      model.cc = 0;
+      model.ccMeaning = 'old value';
       cpu.step();
       equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, '', 'ccMeaning');
+      equal( model.ccMeaning, 'old value', 'ccMeaning');
       deepEqual( model.bf, [0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0]);
     });
 
     test( "ZFA", function() { // zero flag A
       model.rom[0x42] = ZFA | 15;
+      model.cc = 1;
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, '', 'ccMeaning');
+      equal( model.cc, 1, 'cc flag should be unchanged'); 
       deepEqual( model.af, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     });
 

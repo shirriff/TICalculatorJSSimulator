@@ -134,28 +134,9 @@ def asm():
     parseequ()
     parselabels()
     objectCode = {}
+    sourceCode = {}
     f = open('calculator_source_edit_6.asm', 'r')
     iAddr = 0
-    outsrc = open('outsrc.html', 'w')
-    print >>outsrc, """
-<style type="text/css">
-	div.src div {
-		font-family: courier, fixed;
-		white-space: pre;
-		color: #ccc;
-	}
-	.addr {
-		color: #844;
-	}
-	.instr {
-		color: #000;
-	}
-	.comment {
-		color: #090;
-	}
-</style>
-<div class="src">
-"""
     for line in f:
         [addr, op, label, opcode, opval, comment] = parseline(line)
         if addr:
@@ -171,13 +152,12 @@ def asm():
                     else:
                         print 'BAD LABEL', opval
                 opbin = binfmt(opnum)
-                if comment == '; always branch':
+                if comment == '; always branch' or comment == '':
                     comment = ''
                 else:
-                    comment = '  <span class="comment">' + comment[2:] + '</span>'
-                print >>outsrc, ('<div id="s%d"><span class="addr">%s</span>' +
-                  ' <span class="instr">%-8s %-5s %-6s</span>%s</div>') % (
-                      iAddr, addr, label, opcode, opval, comment)
+                    comment = ' ' + comment
+                outline = '\'%-8s %-6s %-6s%s\',' % (label, opcode, opval, comment)
+                sourceCode[iAddr] = outline
                 objectCode[iAddr] = opnum
                 if opbin == op:
                     pass
@@ -187,10 +167,16 @@ def asm():
             else:
                 print 'BAD OP', opcode
     out = open('sourceCode.js', 'w')
+    print >>out, 'var sourceCode = ['
+    for i in range(0, iAddr + 1):
+        print >>out, sourceCode[i]
+    print >>out, '];'
     print >>out, 'var objectCode = ['
     for i in range(0, iAddr + 1):
-        print >>out, '  %d,' % objectCode[i]
-    print >>out, '];'
+        print >>out, '%d,' % objectCode[i],
+        if (i % 8) == 7:
+            print >>out
+    print >>out, '\n];'
 
 def collect():
     f = open('calculator_source_edit_6.asm', 'r')

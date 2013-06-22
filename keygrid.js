@@ -5,10 +5,7 @@ var Keygrid = function(elem, model) {
     ['C', '=', '+', '-', '*', '/', 'CE', '.', '0', 'D'],
     ['', '', '', '', '', '', '', '', '', '']];
 
-  this.model = model;
-  this.context = elem.getContext('2d');
-  this.width = elem.width;
-  this.height = elem.height;
+  var context = elem.getContext('2d');
 
   var BOXSIZE = 30;
   var XMARGIN = 10;
@@ -17,45 +14,50 @@ var Keygrid = function(elem, model) {
   var YSPACING = 45;
 
   this.update = function() {
-    this.model.keyStrobe = 0;
-    this.context.save();
-    this.context.transform(1, 0, 0, 1, .5, .5);
-    for (var col = 0; col < 9; col++) {
-      this.context.strokeStyle = model.d[col] ? '#ccc' : '#f77';
-      this.context.beginPath();
-      this.context.moveTo(XMARGIN + BOXSIZE / 2 + XSPACING * col, 0);
-      this.context.lineTo(XMARGIN + BOXSIZE / 2 + XSPACING * col, this.height);
-      this.context.stroke();
+    // Hack to release key when idle loop is reached
+    if (model.address == 0x22) {
+      model.keyPressed = '';
     }
-    this.context.font = '14px verdana';
-    this.context.textAlign = 'center';
-    this.context.textBaseline = 'middle';
-    this.context.strokeStyle = 'black';
+
+    model.keyStrobe = 0;
+    context.save();
+    context.transform(1, 0, 0, 1, .5, .5);
+    for (var col = 0; col < 9; col++) {
+      context.strokeStyle = model.d[col] ? '#ccc' : '#f77';
+      context.beginPath();
+      context.moveTo(XMARGIN + BOXSIZE / 2 + XSPACING * col, 0);
+      context.lineTo(XMARGIN + BOXSIZE / 2 + XSPACING * col, elem.height);
+      context.stroke();
+    }
+    context.font = '14px verdana';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.strokeStyle = 'black';
     for (var row = 0; row < 3; row++) {
       if (model.keyPressed && this.keys[row][model.dActive - 1] == model.keyPressed) {
 	// Key pressed in current row, so highlight row and activate strobe
-	this.model.keyStrobe = ['KN', 'KO', 'KP'][row]; // Cleared at beginning of method
-        this.context.strokeStyle = '#f77';
+	model.keyStrobe = ['KN', 'KO', 'KP'][row]; // Cleared at beginning of method
+        context.strokeStyle = '#f77';
       } else {
-        this.context.strokeStyle = '#ccc';
+        context.strokeStyle = '#ccc';
       }
-      this.context.beginPath();
-      this.context.moveTo(0, YMARGIN + BOXSIZE / 2 + YSPACING * row);
-      this.context.lineTo(this.width, YMARGIN + BOXSIZE / 2 + YSPACING * row);
-      this.context.stroke();
+      context.beginPath();
+      context.moveTo(0, YMARGIN + BOXSIZE / 2 + YSPACING * row);
+      context.lineTo(elem.width, YMARGIN + BOXSIZE / 2 + YSPACING * row);
+      context.stroke();
 
-      this.context.strokeStyle = '#888';
+      context.strokeStyle = '#888';
       for (var col = 0; col < 9; col++) {
-	this.context.beginPath();
-	this.context.rect(XMARGIN + XSPACING * col, YMARGIN + YSPACING * row, BOXSIZE, BOXSIZE);
+	context.beginPath();
+	context.rect(XMARGIN + XSPACING * col, YMARGIN + YSPACING * row, BOXSIZE, BOXSIZE);
 	// Highlight pressed key.
-	this.context.fillStyle = (model.keyPressed && this.keys[row][col] == model.keyPressed) ? '#aaf' : 'white';
-	this.context.fill();
-	this.context.stroke();
-	this.context.fillStyle = 'black';
-	this.context.fillText(this.keys[row][col], XMARGIN + BOXSIZE / 2 + XSPACING * col, YMARGIN + BOXSIZE / 2 + YSPACING * row);
+	context.fillStyle = (model.keyPressed && this.keys[row][col] == model.keyPressed) ? '#aaf' : 'white';
+	context.fill();
+	context.stroke();
+	context.fillStyle = 'black';
+	context.fillText(this.keys[row][col], XMARGIN + BOXSIZE / 2 + XSPACING * col, YMARGIN + BOXSIZE / 2 + YSPACING * row);
       }
     }
-    this.context.restore();
+    context.restore();
   };
 };

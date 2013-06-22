@@ -1,6 +1,6 @@
 <html>
 <body>
-	<!--
+  <!--
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
 -->
 
@@ -21,57 +21,62 @@
     height: 33px;
     cursor: pointer;
   }
-	.cond, .cond th, .cond tr, .cond td {
-		border: none !important;
-		line-height: 2em;
-		text-align: left !important;
-	}
-	#registers {
-		border-collapse: collapse;
-		font-family: arial;
-		border-right: 1px solid #ddd;
-	}
-	#registers th {
-		font-weight: bold;
-		text-align: right;
-		padding-right: 10px;
-		border-right: 1px solid #ddd;
-		max-width: 70px;
-		width: 70px;
-	}
-	#registers td {
-		text-align: center;
-		min-width: 48px;
-		width: 48px;
-		border-top: 1px solid #ddd;
-		border-bottom: 1px solid #ddd;
-	}
-	.mask {
-		background-color: #fcc;
-	}
-	#sourceWindow {
-	  width: 500px;
-	  height: 300px;
-	  border: 1px solid #ddd;
-	  font-family: courier, fixed;
-	  font-size: 12px;
-	overflow:hidden;
+  .cond, .cond th, .cond tr, .cond td {
+    border: none !important;
+    line-height: 2em;
+    text-align: left !important;
+  }
+  #registers {
+    border-collapse: collapse;
+    font-family: arial;
+    border-right: 1px solid #ddd;
+  }
+  #registers th {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 10px;
+    border-right: 1px solid #ddd;
+    max-width: 70px;
+    width: 70px;
+  }
+  #registers td {
+    text-align: center;
+    min-width: 48px;
+    width: 48px;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+  }
+  .mask {
+    background-color: #fcc;
+  }
+  #sourceWindowContainer {
+    font-size: 14px;
+    line-height: 1em;
+    width: 500px;
+    height: 300px;
+    border: 1px solid #ddd;
+    font-family: courier, fixed;
+    font-size: 12px;
+    overflow: hidden;
         }
-	  
-	div#sourceWindow div {
-		font-family: courier, fixed;
-		white-space: pre;
-		color: #ccc;
-	}
-	.addr {
-		color: #844;
-	}
-	.instr {
-		color: #000;
-	}
-	.comment {
-		color: #090;
-	}
+    
+  div#sourceWindow div {
+    font-family: courier, fixed;
+    white-space: pre;
+    color: #ccc;
+  }
+  .addr {
+    color: #844;
+  }
+  .instr {
+    color: #000;
+  }
+  .comment {
+    color: #090;
+  }
+  .highlight {
+    background-color: #fcc;
+  }
 </style>
 
 
@@ -80,12 +85,12 @@
 
 $(document).ready(function() {
   var calcImage = new CalcImage($("#calcImage"));
-  var model = new Model(sourceCode, objectCode);
+  var model = new Model(objectCode);
   var keygrid = new Keygrid($("#keygrid")[0], model);
   var registers = new Registers($("#registers")[0], model);
   var display = new Display($("#display"), model);
   var display2 = new Display($("#calcDisplay"), model);
-  var sourceWindow = new SourceWindow($("#sourceWindow"), model);
+  var sourceWindow = new SourceWindow($("#sourceWindow"), model, sourceCode);
   var cpu = new Cpu(model);
   var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
     registers, $("#playButton"), $("#stopButton"), $("#stepButton"));
@@ -104,326 +109,7 @@ $(document).ready(function() {
 <button id="stopButton" title="stop" style="background:url(images/stop.png) no-repeat 2px 2px;"></button>
 <button id="stepButton" title="step" style="background:url(images/step.png) no-repeat 2px 2px;"></button>
 <br/>
-<div id="sourceWindow">
-<div id="s0"><span class="addr">000</span> <span class="instr">.CLEAR   ZFA   ALL   </span>  <span class="comment">power on, clear flags</span></div>
-<div id="s1"><span class="addr">001</span> <span class="instr">         ZFB   ALL   </span>  <span class="comment"></span></div>
-<div id="s2"><span class="addr">002</span> <span class="instr">         AKA   ALL   </span>  <span class="comment">clear a and c</span></div>
-<div id="s3"><span class="addr">003</span> <span class="instr">         AKC   ALL   </span>  <span class="comment"></span></div>
-<div id="s4"><span class="addr">004</span> <span class="instr">         BET   RJ    </span>  <span class="comment">reset condition latch</span></div>
-<div id="s5"><span class="addr">005</span> <span class="instr">.RJ      CAK   MANT1 </span>  <span class="comment">right justify a</span></div>
-<div id="s6"><span class="addr">006</span> <span class="instr">         BILT  ZERO  </span>  <span class="comment">mantissa is zero?</span></div>
-<div id="s7"><span class="addr">007</span> <span class="instr">.S       TFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s8"><span class="addr">008</span> <span class="instr">         BIZ   RJ1   </span>  <span class="comment">a is positive</span></div>
-<div id="s9"><span class="addr">009</span> <span class="instr">         SAKAH OV1   </span>  <span class="comment">minus sign is hex 14</span></div>
-<div id="s10"><span class="addr">00A</span> <span class="instr">         SAKAH OV1   </span>  <span class="comment"></span></div>
-<div id="s11"><span class="addr">00B</span> <span class="instr">         BET   RJ1   </span>  <span class="comment">reset condition latch</span></div>
-<div id="s12"><span class="addr">00C</span> <span class="instr">.RJ1     CAK   LSD1  </span>  <span class="comment">right justify the display</span></div>
-<div id="s13"><span class="addr">00D</span> <span class="instr">         BIGE  DPTPOS</span>  <span class="comment"></span></div>
-<div id="s14"><span class="addr">00E</span> <span class="instr">         CAK   EXP1  </span>  <span class="comment"></span></div>
-<div id="s15"><span class="addr">00F</span> <span class="instr">         BILT  DPTPOS</span>  <span class="comment"></span></div>
-<div id="s16"><span class="addr">010</span> <span class="instr">         SRLA  MANT  </span>  <span class="comment">shift a mantissa right</span></div>
-<div id="s17"><span class="addr">011</span> <span class="instr">         SAKA  EXP1  </span>  <span class="comment">decrement a exponent</span></div>
-<div id="s18"><span class="addr">012</span> <span class="instr">         BET   RJ1   </span></div>
-<div id="s19"><span class="addr">013</span> <span class="instr">.ZERO    AKA   ALL   </span>  <span class="comment">a is zero, clear entire register</span></div>
-<div id="s20"><span class="addr">014</span> <span class="instr">         ZFA   SIGN  </span>  <span class="comment">clear a sign flag</span></div>
-<div id="s21"><span class="addr">015</span> <span class="instr">.DPTPOS  EXAB  ALL   </span>  <span class="comment">compute decimal point position</span></div>
-<div id="s22"><span class="addr">016</span> <span class="instr">         AKA   MANT1 </span>  <span class="comment"></span></div>
-<div id="s23"><span class="addr">017</span> <span class="instr">         AAKA  MANT1 </span>  <span class="comment"></span></div>
-<div id="s24"><span class="addr">018</span> <span class="instr">         EXAB  MANT  </span>  <span class="comment">b mantissa is 2</span></div>
-<div id="s25"><span class="addr">019</span> <span class="instr">         ABOA  EXP   </span>  <span class="comment">restore a exponent</span></div>
-<div id="s26"><span class="addr">01A</span> <span class="instr">.DP1     SAKA  EXP1  </span>  <span class="comment">shift b (2) left by a exponent</span></div>
-<div id="s27"><span class="addr">01B</span> <span class="instr">         BILT  DP2   </span>  <span class="comment"></span></div>
-<div id="s28"><span class="addr">01C</span> <span class="instr">         SLLB  MANT  </span>  <span class="comment"></span></div>
-<div id="s29"><span class="addr">01D</span> <span class="instr">         BET   DP1   </span></div>
-<div id="s30"><span class="addr">01E</span> <span class="instr">.DP2     ABOA  EXP   </span>  <span class="comment"></span></div>
-<div id="s31"><span class="addr">01F</span> <span class="instr">         TFB   F10   </span>  <span class="comment"></span></div>
-<div id="s32"><span class="addr">020</span> <span class="instr">         BIO   ID1   </span>  <span class="comment"></span></div>
-<div id="s33"><span class="addr">021</span> <span class="instr">.LOCK    SYNC        </span>  <span class="comment">debounce: wait for no key for a few cycles</span></div>
-<div id="s34"><span class="addr">022</span> <span class="instr">         SCAN        </span>  <span class="comment"></span></div>
-<div id="s35"><span class="addr">023</span> <span class="instr">         BID   LOCK  </span>  <span class="comment"></span></div>
-<div id="s36"><span class="addr">024</span> <span class="instr">         SYNC        </span>  <span class="comment"></span></div>
-<div id="s37"><span class="addr">025</span> <span class="instr">         SCAN        </span>  <span class="comment"></span></div>
-<div id="s38"><span class="addr">026</span> <span class="instr">         BID   LOCK  </span>  <span class="comment"></span></div>
-<div id="s39"><span class="addr">027</span> <span class="instr">         ACKB  EXP   </span>  <span class="comment"></span></div>
-<div id="s40"><span class="addr">028</span> <span class="instr">.IDLE    AKC   EXP   </span>  <span class="comment">idle loop entry</span></div>
-<div id="s41"><span class="addr">029</span> <span class="instr">.ID1     ZFB   F10   </span>  <span class="comment"></span></div>
-<div id="s42"><span class="addr">02A</span> <span class="instr">.ID2     WAITNO ID3   </span>  <span class="comment">wait for key press or timeout</span></div>
-<div id="s43"><span class="addr">02B</span> <span class="instr">.ID4     SYNC        </span>  <span class="comment"></span></div>
-<div id="s44"><span class="addr">02C</span> <span class="instr">         SCAN        </span>  <span class="comment"></span></div>
-<div id="s45"><span class="addr">02D</span> <span class="instr">         BID   KEY   </span>  <span class="comment">key down</span></div>
-<div id="s46"><span class="addr">02E</span> <span class="instr">.FD1     ACKC  EXP1  </span>  <span class="comment"></span></div>
-<div id="s47"><span class="addr">02F</span> <span class="instr">         CCK   TIM4  </span>  <span class="comment">check number of timeouts</span></div>
-<div id="s48"><span class="addr">030</span> <span class="instr">         BILT  FD3   </span>  <span class="comment"></span></div>
-<div id="s49"><span class="addr">031</span> <span class="instr">         AKC   EXP   </span>  <span class="comment"></span></div>
-<div id="s50"><span class="addr">032</span> <span class="instr">         SYNC        </span>  <span class="comment"></span></div>
-<div id="s51"><span class="addr">033</span> <span class="instr">         WAITDK ID5   </span>  <span class="comment">turn off display, wait for dk</span></div>
-<div id="s52"><span class="addr">034</span> <span class="instr">.FD3     TFB   F5    </span>  <span class="comment">overflow flag</span></div>
-<div id="s53"><span class="addr">035</span> <span class="instr">         BIZ   ID2   </span>  <span class="comment"></span></div>
-<div id="s54"><span class="addr">036</span> <span class="instr">         SFB   F10   </span>  <span class="comment"></span></div>
-<div id="s55"><span class="addr">037</span> <span class="instr">         AKC   MANT  </span>  <span class="comment"></span></div>
-<div id="s56"><span class="addr">038</span> <span class="instr">         SCKC  MANT1 </span>  <span class="comment"></span></div>
-<div id="s57"><span class="addr">039</span> <span class="instr">         BET   FD5   </span>  <span class="comment">reset condition latch</span></div>
-<div id="s58"><span class="addr">03A</span> <span class="instr">.FD5     ACKB  MANT  </span>  <span class="comment"></span></div>
-<div id="s59"><span class="addr">03B</span> <span class="instr">         ACKC  EXP1  </span>  <span class="comment"></span></div>
-<div id="s60"><span class="addr">03C</span> <span class="instr">         WAITNO FD4   </span>  <span class="comment"></span></div>
-<div id="s61"><span class="addr">03D</span> <span class="instr">.MINKEY  SFB   OP2   </span>  <span class="comment"></span></div>
-<div id="s62"><span class="addr">03E</span> <span class="instr">         TFA   F3    </span>  <span class="comment"></span></div>
-<div id="s63"><span class="addr">03F</span> <span class="instr">         BIZ   PLSKEY</span>  <span class="comment"></span></div>
-<div id="s64"><span class="addr">040</span> <span class="instr">         TFA   F4    </span>  <span class="comment"></span></div>
-<div id="s65"><span class="addr">041</span> <span class="instr">         BIO   PLSKEY</span>  <span class="comment"></span></div>
-<div id="s66"><span class="addr">042</span> <span class="instr">         TFA   OP1   </span>  <span class="comment"></span></div>
-<div id="s67"><span class="addr">043</span> <span class="instr">         BIZ   PLSKEY</span>  <span class="comment">wrong instruction in code</span></div>
-<div id="s68"><span class="addr">044</span> <span class="instr">         ZFB   OP2   </span>  <span class="comment">missing in  code</span></div>
-<div id="s69"><span class="addr">045</span> <span class="instr">         SFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s70"><span class="addr">046</span> <span class="instr">         AKA   ALL   </span>  <span class="comment"></span></div>
-<div id="s71"><span class="addr">047</span> <span class="instr">         SFA   F9    </span>  <span class="comment"></span></div>
-<div id="s72"><span class="addr">048</span> <span class="instr">         AAKA  DPT7  </span>  <span class="comment"></span></div>
-<div id="s73"><span class="addr">049</span> <span class="instr">         ZFA   F3    </span>  <span class="comment"></span></div>
-<div id="s74"><span class="addr">04A</span> <span class="instr">         BET   S     </span></div>
-<div id="s75"><span class="addr">04B</span> <span class="instr">.DIVKEY  SFB   OP2   </span>  <span class="comment"></span></div>
-<div id="s76"><span class="addr">04C</span> <span class="instr">.MLTKEY  SFB   OP1   </span>  <span class="comment"></span></div>
-<div id="s77"><span class="addr">04D</span> <span class="instr">.PLSKEY  SFB   OP3   </span>  <span class="comment"></span></div>
-<div id="s78"><span class="addr">04E</span> <span class="instr">         TFA   F3    </span>  <span class="comment">clear display flag</span></div>
-<div id="s79"><span class="addr">04F</span> <span class="instr">         BIO   KS1   </span>  <span class="comment"></span></div>
-<div id="s80"><span class="addr">050</span> <span class="instr">         TFA   F4    </span>  <span class="comment">equal flag</span></div>
-<div id="s81"><span class="addr">051</span> <span class="instr">         BIZ   KS2   </span>  <span class="comment"></span></div>
-<div id="s82"><span class="addr">052</span> <span class="instr">.KS1     ZFA   F4    </span>  <span class="comment"></span></div>
-<div id="s83"><span class="addr">053</span> <span class="instr">         SFA   F5    </span>  <span class="comment"></span></div>
-<div id="s84"><span class="addr">054</span> <span class="instr">         BET   KS2   </span></div>
-<div id="s85"><span class="addr">055</span> <span class="instr">.EQLKEY  SFA   F4    </span>  <span class="comment"></span></div>
-<div id="s86"><span class="addr">056</span> <span class="instr">.KS2     CAK   MANT1 </span>  <span class="comment"></span></div>
-<div id="s87"><span class="addr">057</span> <span class="instr">         BILT  KS6   </span>  <span class="comment"></span></div>
-<div id="s88"><span class="addr">058</span> <span class="instr">.KS3     CAK   OV1   </span>  <span class="comment">left justify</span></div>
-<div id="s89"><span class="addr">059</span> <span class="instr">         BIGE  KS4   </span>  <span class="comment"></span></div>
-<div id="s90"><span class="addr">05A</span> <span class="instr">         SLLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s91"><span class="addr">05B</span> <span class="instr">         AAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s92"><span class="addr">05C</span> <span class="instr">         BET   KS3   </span></div>
-<div id="s93"><span class="addr">05D</span> <span class="instr">.DPTKEY  SFA   F10   </span>  <span class="comment"></span></div>
-<div id="s94"><span class="addr">05E</span> <span class="instr">         ZFA   F9    </span>  <span class="comment"></span></div>
-<div id="s95"><span class="addr">05F</span> <span class="instr">         TFA   F3    </span>  <span class="comment"></span></div>
-<div id="s96"><span class="addr">060</span> <span class="instr">         BIZ   DPTPOS</span>  <span class="comment"></span></div>
-<div id="s97"><span class="addr">061</span> <span class="instr">         ZFA   F3    </span>  <span class="comment"></span></div>
-<div id="s98"><span class="addr">062</span> <span class="instr">         BET   ZERO  </span></div>
-<div id="s99"><span class="addr">063</span> <span class="instr">.CEKEY   TFA   F3    </span>  <span class="comment"></span></div>
-<div id="s100"><span class="addr">064</span> <span class="instr">         BIO   DPTPOS</span>  <span class="comment"></span></div>
-<div id="s101"><span class="addr">065</span> <span class="instr">         SFA   F3    </span>  <span class="comment"></span></div>
-<div id="s102"><span class="addr">066</span> <span class="instr">         ZFA   F10   </span>  <span class="comment"></span></div>
-<div id="s103"><span class="addr">067</span> <span class="instr">         BET   ZERO  </span></div>
-<div id="s104"><span class="addr">068</span> <span class="instr">.KEY     ABOC  EXP   </span>  <span class="comment"></span></div>
-<div id="s105"><span class="addr">069</span> <span class="instr">         TFB   F5    </span>  <span class="comment"></span></div>
-<div id="s106"><span class="addr">06A</span> <span class="instr">         BIO   LOCK  </span>  <span class="comment"></span></div>
-<div id="s107"><span class="addr">06B</span> <span class="instr">         SYNC        </span>  <span class="comment"></span></div>
-<div id="s108"><span class="addr">06C</span> <span class="instr">         SYNC        </span>  <span class="comment"></span></div>
-<div id="s109"><span class="addr">06D</span> <span class="instr">         SCAN        </span>  <span class="comment"></span></div>
-<div id="s110"><span class="addr">06E</span> <span class="instr">         BIU   IDLE  </span>  <span class="comment"></span></div>
-<div id="s111"><span class="addr">06F</span> <span class="instr">         AKB   ALL   </span>  <span class="comment"></span></div>
-<div id="s112"><span class="addr">070</span> <span class="instr">         SYNC        </span>  <span class="comment"></span></div>
-<div id="s113"><span class="addr">071</span> <span class="instr">         BKO   CLEAR </span>  <span class="comment">clear key pressed?</span></div>
-<div id="s114"><span class="addr">072</span> <span class="instr">         BKO   EQLKEY</span>  <span class="comment">equal key pressed?</span></div>
-<div id="s115"><span class="addr">073</span> <span class="instr">         BKO   PLSKEY</span>  <span class="comment">plus key pressed?</span></div>
-<div id="s116"><span class="addr">074</span> <span class="instr">         BKO   MINKEY</span>  <span class="comment">minus key pressed?</span></div>
-<div id="s117"><span class="addr">075</span> <span class="instr">         BKO   MLTKEY</span>  <span class="comment">mult key pressed?</span></div>
-<div id="s118"><span class="addr">076</span> <span class="instr">         BKO   DIVKEY</span>  <span class="comment">divide key pressed?</span></div>
-<div id="s119"><span class="addr">077</span> <span class="instr">         BKO   CEKEY </span>  <span class="comment">ce key pressed?</span></div>
-<div id="s120"><span class="addr">078</span> <span class="instr">         BKO   DPTKEY</span>  <span class="comment">decimal point key pressed?</span></div>
-<div id="s121"><span class="addr">079</span> <span class="instr">         BKO   ZERKEY</span>  <span class="comment">zero key pressed?</span></div>
-<div id="s122"><span class="addr">07A</span> <span class="instr">         EXAB  ALL   </span>  <span class="comment"></span></div>
-<div id="s123"><span class="addr">07B</span> <span class="instr">         AKCN  LSD1  </span>  <span class="comment">scan n to find digit pressed</span></div>
-<div id="s124"><span class="addr">07C</span> <span class="instr">         EXAB  ALL   </span>  <span class="comment"></span></div>
-<div id="s125"><span class="addr">07D</span> <span class="instr">         BIC   DPTPOS</span>  <span class="comment">no key pressed</span></div>
-<div id="s126"><span class="addr">07E</span> <span class="instr">.ZERKEY  TFA   F3    </span>  <span class="comment">clear display flag</span></div>
-<div id="s127"><span class="addr">07F</span> <span class="instr">         BIZ   NUM1  </span>  <span class="comment"></span></div>
-<div id="s128"><span class="addr">080</span> <span class="instr">.CD      ZFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s129"><span class="addr">081</span> <span class="instr">.CD1     AKA   ALL   </span>  <span class="comment"></span></div>
-<div id="s130"><span class="addr">082</span> <span class="instr">         ZFA   F3    </span>  <span class="comment"></span></div>
-<div id="s131"><span class="addr">083</span> <span class="instr">.NUM1    TFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s132"><span class="addr">084</span> <span class="instr">         BIZ   NUM3  </span>  <span class="comment"></span></div>
-<div id="s133"><span class="addr">085</span> <span class="instr">         AAKAH OV1   </span>  <span class="comment"></span></div>
-<div id="s134"><span class="addr">086</span> <span class="instr">         AAKAH OV1   </span>  <span class="comment"></span></div>
-<div id="s135"><span class="addr">087</span> <span class="instr">         SAKAH OV1   </span>  <span class="comment"></span></div>
-<div id="s136"><span class="addr">088</span> <span class="instr">         SAKAH OV1   </span>  <span class="comment"></span></div>
-<div id="s137"><span class="addr">089</span> <span class="instr">         BIC   DPTPOS</span>  <span class="comment"></span></div>
-<div id="s138"><span class="addr">08A</span> <span class="instr">.NUM2    TFA   F9    </span>  <span class="comment"></span></div>
-<div id="s139"><span class="addr">08B</span> <span class="instr">         BIZ   NUM4  </span>  <span class="comment"></span></div>
-<div id="s140"><span class="addr">08C</span> <span class="instr">         TFA   F10   </span>  <span class="comment"></span></div>
-<div id="s141"><span class="addr">08D</span> <span class="instr">         BIO   NUM7  </span>  <span class="comment"></span></div>
-<div id="s142"><span class="addr">08E</span> <span class="instr">         EXAB  ALL   </span>  <span class="comment"></span></div>
-<div id="s143"><span class="addr">08F</span> <span class="instr">         CAK   MANT1 </span>  <span class="comment"></span></div>
-<div id="s144"><span class="addr">090</span> <span class="instr">         EXAB  ALL   </span>  <span class="comment"></span></div>
-<div id="s145"><span class="addr">091</span> <span class="instr">         BILT  DPTPOS</span>  <span class="comment"></span></div>
-<div id="s146"><span class="addr">092</span> <span class="instr">.NUM7    ZFA   F9    </span>  <span class="comment"></span></div>
-<div id="s147"><span class="addr">093</span> <span class="instr">         BET   NUM6  </span></div>
-<div id="s148"><span class="addr">094</span> <span class="instr">.NUM3    CAK   MSD1  </span>  <span class="comment"></span></div>
-<div id="s149"><span class="addr">095</span> <span class="instr">         BIGE  DPTPOS</span>  <span class="comment"></span></div>
-<div id="s150"><span class="addr">096</span> <span class="instr">         CAK   DPT7  </span>  <span class="comment"></span></div>
-<div id="s151"><span class="addr">097</span> <span class="instr">         BIGE  DPTPOS</span>  <span class="comment"></span></div>
-<div id="s152"><span class="addr">098</span> <span class="instr">.NUM4    TFA   F10   </span>  <span class="comment">typo was tea</span></div>
-<div id="s153"><span class="addr">099</span> <span class="instr">         BIZ   NUM5  </span>  <span class="comment"></span></div>
-<div id="s154"><span class="addr">09A</span> <span class="instr">         AAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s155"><span class="addr">09B</span> <span class="instr">.NUM5    SLLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s156"><span class="addr">09C</span> <span class="instr">.NUM6    ABOA  LSD1  </span>  <span class="comment"></span></div>
-<div id="s157"><span class="addr">09D</span> <span class="instr">         BET   DPTPOS</span></div>
-<div id="s158"><span class="addr">09E</span> <span class="instr">.KS6     AKA   EXP   </span>  <span class="comment"></span></div>
-<div id="s159"><span class="addr">09F</span> <span class="instr">         ZFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s160"><span class="addr">0A0</span> <span class="instr">         AAKA  DPT7  </span>  <span class="comment"></span></div>
-<div id="s161"><span class="addr">0A1</span> <span class="instr">.KS7     ZFA   FD    </span>  <span class="comment">zeros temp(num) and dpt flag</span></div>
-<div id="s162"><span class="addr">0A2</span> <span class="instr">         TFA   F5    </span>  <span class="comment">post flag</span></div>
-<div id="s163"><span class="addr">0A3</span> <span class="instr">         BIO   POST  </span>  <span class="comment"></span></div>
-<div id="s164"><span class="addr">0A4</span> <span class="instr">         TFA   OP3   </span>  <span class="comment"></span></div>
-<div id="s165"><span class="addr">0A5</span> <span class="instr">         BIZ   POST  </span>  <span class="comment"></span></div>
-<div id="s166"><span class="addr">0A6</span> <span class="instr">         ACKB  ALL   </span>  <span class="comment"></span></div>
-<div id="s167"><span class="addr">0A7</span> <span class="instr">         TFB   F3    </span>  <span class="comment">constant flag</span></div>
-<div id="s168"><span class="addr">0A8</span> <span class="instr">         BIZ   KS8   </span>  <span class="comment"></span></div>
-<div id="s169"><span class="addr">0A9</span> <span class="instr">         ZFB   F3    </span>  <span class="comment"></span></div>
-<div id="s170"><span class="addr">0AA</span> <span class="instr">         EXAB  ALL   </span>  <span class="comment"></span></div>
-<div id="s171"><span class="addr">0AB</span> <span class="instr">         ABOC  ALL   </span>  <span class="comment"></span></div>
-<div id="s172"><span class="addr">0AC</span> <span class="instr">         EXF   SIGN  </span>  <span class="comment"></span></div>
-<div id="s173"><span class="addr">0AD</span> <span class="instr">.KS8     TFA   OP1   </span>  <span class="comment"></span></div>
-<div id="s174"><span class="addr">0AE</span> <span class="instr">         BIO   MLTDIV</span>  <span class="comment"></span></div>
-<div id="s175"><span class="addr">0AF</span> <span class="instr">.ADDSUB  TFB   SIGN  </span>  <span class="comment"></span></div>
-<div id="s176"><span class="addr">0B0</span> <span class="instr">         BIZ   AS1   </span>  <span class="comment"></span></div>
-<div id="s177"><span class="addr">0B1</span> <span class="instr">         SFA   F5    </span>  <span class="comment"></span></div>
-<div id="s178"><span class="addr">0B2</span> <span class="instr">.AS1     TFA   OP2   </span>  <span class="comment"></span></div>
-<div id="s179"><span class="addr">0B3</span> <span class="instr">         BIZ   AS2   </span>  <span class="comment"></span></div>
-<div id="s180"><span class="addr">0B4</span> <span class="instr">         FFB   SIGN  </span>  <span class="comment"></span></div>
-<div id="s181"><span class="addr">0B5</span> <span class="instr">.AS2     CAB   EXP   </span>  <span class="comment"></span></div>
-<div id="s182"><span class="addr">0B6</span> <span class="instr">         BIGE  AS3   </span>  <span class="comment"></span></div>
-<div id="s183"><span class="addr">0B7</span> <span class="instr">         EXAB  ALL   </span>  <span class="comment"></span></div>
-<div id="s184"><span class="addr">0B8</span> <span class="instr">         EXF   SIGN  </span>  <span class="comment"></span></div>
-<div id="s185"><span class="addr">0B9</span> <span class="instr">.AS3     SAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s186"><span class="addr">0BA</span> <span class="instr">         CAB   EXP   </span>  <span class="comment"></span></div>
-<div id="s187"><span class="addr">0BB</span> <span class="instr">         BILT  AS4   </span>  <span class="comment"></span></div>
-<div id="s188"><span class="addr">0BC</span> <span class="instr">         SRLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s189"><span class="addr">0BD</span> <span class="instr">         BET   AS3   </span></div>
-<div id="s190"><span class="addr">0BE</span> <span class="instr">.AS4     AAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s191"><span class="addr">0BF</span> <span class="instr">         BET   AS5   </span>  <span class="comment">reset condition</span></div>
-<div id="s192"><span class="addr">0C0</span> <span class="instr">.AS5     CAB   MANT  </span>  <span class="comment"></span></div>
-<div id="s193"><span class="addr">0C1</span> <span class="instr">         BIGE  AS6   </span>  <span class="comment"></span></div>
-<div id="s194"><span class="addr">0C2</span> <span class="instr">         EXAB  ALL   </span>  <span class="comment"></span></div>
-<div id="s195"><span class="addr">0C3</span> <span class="instr">         EXF   SIGN  </span>  <span class="comment"></span></div>
-<div id="s196"><span class="addr">0C4</span> <span class="instr">.AS6     CF    SIGN  </span>  <span class="comment"></span></div>
-<div id="s197"><span class="addr">0C5</span> <span class="instr">         BIE   AS7   </span>  <span class="comment"></span></div>
-<div id="s198"><span class="addr">0C6</span> <span class="instr">         SABA  MANT  </span>  <span class="comment"></span></div>
-<div id="s199"><span class="addr">0C7</span> <span class="instr">         BET   AS8   </span></div>
-<div id="s200"><span class="addr">0C8</span> <span class="instr">.AS7     AABA  MANT  </span>  <span class="comment"></span></div>
-<div id="s201"><span class="addr">0C9</span> <span class="instr">.AS8     ZFB   SIGN  </span>  <span class="comment"></span></div>
-<div id="s202"><span class="addr">0CA</span> <span class="instr">         TFA   F5    </span>  <span class="comment"></span></div>
-<div id="s203"><span class="addr">0CB</span> <span class="instr">         BIZ   POST  </span>  <span class="comment"></span></div>
-<div id="s204"><span class="addr">0CC</span> <span class="instr">         SFB   SIGN  </span>  <span class="comment"></span></div>
-<div id="s205"><span class="addr">0CD</span> <span class="instr">         ZFA   F5    </span>  <span class="comment"></span></div>
-<div id="s206"><span class="addr">0CE</span> <span class="instr">         BET   POST  </span></div>
-<div id="s207"><span class="addr">0CF</span> <span class="instr">.MLTDIV  CF    SIGN  </span>  <span class="comment"></span></div>
-<div id="s208"><span class="addr">0D0</span> <span class="instr">         ZFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s209"><span class="addr">0D1</span> <span class="instr">         BIE   MD1   </span>  <span class="comment"></span></div>
-<div id="s210"><span class="addr">0D2</span> <span class="instr">         SFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s211"><span class="addr">0D3</span> <span class="instr">.MD1     TFA   OP2   </span>  <span class="comment"></span></div>
-<div id="s212"><span class="addr">0D4</span> <span class="instr">         BIC   DIV   </span>  <span class="comment"></span></div>
-<div id="s213"><span class="addr">0D5</span> <span class="instr">         AAKC  ALL   </span>  <span class="comment"></span></div>
-<div id="s214"><span class="addr">0D6</span> <span class="instr">         AKA   MANT  </span>  <span class="comment"></span></div>
-<div id="s215"><span class="addr">0D7</span> <span class="instr">         AABA  EXP   </span>  <span class="comment"></span></div>
-<div id="s216"><span class="addr">0D8</span> <span class="instr">.M1      SCKC  LSD1  </span>  <span class="comment"></span></div>
-<div id="s217"><span class="addr">0D9</span> <span class="instr">         BILT  M2    </span>  <span class="comment"></span></div>
-<div id="s218"><span class="addr">0DA</span> <span class="instr">         AABA  MANT  </span>  <span class="comment"></span></div>
-<div id="s219"><span class="addr">0DB</span> <span class="instr">         BET   M1    </span></div>
-<div id="s220"><span class="addr">0DC</span> <span class="instr">.M2      SRLC  MANT  </span>  <span class="comment"></span></div>
-<div id="s221"><span class="addr">0DD</span> <span class="instr">         CCK   MANT1 </span>  <span class="comment"></span></div>
-<div id="s222"><span class="addr">0DE</span> <span class="instr">         BILT  MD2   </span>  <span class="comment">multiply done</span></div>
-<div id="s223"><span class="addr">0DF</span> <span class="instr">         SRLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s224"><span class="addr">0E0</span> <span class="instr">         SAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s225"><span class="addr">0E1</span> <span class="instr">         BIGE  M1    </span>  <span class="comment"></span></div>
-<div id="s226"><span class="addr">0E2</span> <span class="instr">         SFB   F5    </span>  <span class="comment"></span></div>
-<div id="s227"><span class="addr">0E3</span> <span class="instr">         BET   M1    </span></div>
-<div id="s228"><span class="addr">0E4</span> <span class="instr">.DIV     CCK   MANT1 </span>  <span class="comment"></span></div>
-<div id="s229"><span class="addr">0E5</span> <span class="instr">         BILT  ERR   </span>  <span class="comment">divide by zero</span></div>
-<div id="s230"><span class="addr">0E6</span> <span class="instr">         AAKC  ALL   </span>  <span class="comment"></span></div>
-<div id="s231"><span class="addr">0E7</span> <span class="instr">.D1      AKA   MANT  </span>  <span class="comment"></span></div>
-<div id="s232"><span class="addr">0E8</span> <span class="instr">         CCK   MANT1 </span>  <span class="comment"></span></div>
-<div id="s233"><span class="addr">0E9</span> <span class="instr">         BILT  MD2   </span>  <span class="comment">answer zero</span></div>
-<div id="s234"><span class="addr">0EA</span> <span class="instr">         SABA  EXP   </span>  <span class="comment"></span></div>
-<div id="s235"><span class="addr">0EB</span> <span class="instr">         BIGE  D2    </span>  <span class="comment"></span></div>
-<div id="s236"><span class="addr">0EC</span> <span class="instr">         SFB   F5    </span>  <span class="comment"></span></div>
-<div id="s237"><span class="addr">0ED</span> <span class="instr">.D2      CCB   MANT  </span>  <span class="comment"></span></div>
-<div id="s238"><span class="addr">0EE</span> <span class="instr">         BILT  D3    </span>  <span class="comment"></span></div>
-<div id="s239"><span class="addr">0EF</span> <span class="instr">         SCBC  MANT  </span>  <span class="comment"></span></div>
-<div id="s240"><span class="addr">0F0</span> <span class="instr">         AAKA  LSD1  </span>  <span class="comment"></span></div>
-<div id="s241"><span class="addr">0F1</span> <span class="instr">         BET   D2    </span></div>
-<div id="s242"><span class="addr">0F2</span> <span class="instr">.D3      CAK   MSD1  </span>  <span class="comment"></span></div>
-<div id="s243"><span class="addr">0F3</span> <span class="instr">         BIGE  MD2   </span>  <span class="comment">divide done</span></div>
-<div id="s244"><span class="addr">0F4</span> <span class="instr">         SLLC  MANT  </span>  <span class="comment"></span></div>
-<div id="s245"><span class="addr">0F5</span> <span class="instr">         SLLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s246"><span class="addr">0F6</span> <span class="instr">         AAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s247"><span class="addr">0F7</span> <span class="instr">         BINC  D2    </span>  <span class="comment"></span></div>
-<div id="s248"><span class="addr">0F8</span> <span class="instr">         ZFB   F5    </span>  <span class="comment"></span></div>
-<div id="s249"><span class="addr">0F9</span> <span class="instr">         BET   D2    </span></div>
-<div id="s250"><span class="addr">0FA</span> <span class="instr">.ERR     SFB   F5    </span>  <span class="comment"></span></div>
-<div id="s251"><span class="addr">0FB</span> <span class="instr">         BET   ZERO  </span></div>
-<div id="s252"><span class="addr">0FC</span> <span class="instr">.MD2     ABOC  ALL   </span>  <span class="comment"></span></div>
-<div id="s253"><span class="addr">0FD</span> <span class="instr">.POST    AKB   EXP   </span>  <span class="comment"></span></div>
-<div id="s254"><span class="addr">0FE</span> <span class="instr">         AKB   DPT7  </span>  <span class="comment"></span></div>
-<div id="s255"><span class="addr">0FF</span> <span class="instr">         CAK   OV1   </span>  <span class="comment"></span></div>
-<div id="s256"><span class="addr">100</span> <span class="instr">         BILT  P1    </span>  <span class="comment"></span></div>
-<div id="s257"><span class="addr">101</span> <span class="instr">         SRLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s258"><span class="addr">102</span> <span class="instr">         SAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s259"><span class="addr">103</span> <span class="instr">         BIGE  P1    </span>  <span class="comment"></span></div>
-<div id="s260"><span class="addr">104</span> <span class="instr">         SFB   F5    </span>  <span class="comment"></span></div>
-<div id="s261"><span class="addr">105</span> <span class="instr">.OVF     AABA  EXP   </span>  <span class="comment"></span></div>
-<div id="s262"><span class="addr">106</span> <span class="instr">         AAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s263"><span class="addr">107</span> <span class="instr">         BIC   OVF1  </span>  <span class="comment">always branch ?</span></div>
-<div id="s264"><span class="addr">108</span> <span class="instr">.P1      TFB   F5    </span>  <span class="comment"></span></div>
-<div id="s265"><span class="addr">109</span> <span class="instr">         BIO   OVF   </span>  <span class="comment"></span></div>
-<div id="s266"><span class="addr">10A</span> <span class="instr">         CAK   MANT1 </span>  <span class="comment"></span></div>
-<div id="s267"><span class="addr">10B</span> <span class="instr">         BILT  P3    </span>  <span class="comment"></span></div>
-<div id="s268"><span class="addr">10C</span> <span class="instr">.P2      CAK   MSD1  </span>  <span class="comment"></span></div>
-<div id="s269"><span class="addr">10D</span> <span class="instr">         BIGE  P4    </span>  <span class="comment"></span></div>
-<div id="s270"><span class="addr">10E</span> <span class="instr">         SLLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s271"><span class="addr">10F</span> <span class="instr">         AAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s272"><span class="addr">110</span> <span class="instr">         BET   P2    </span></div>
-<div id="s273"><span class="addr">111</span> <span class="instr">.ID5     BET   ID4   </span></div>
-<div id="s274"><span class="addr">112</span> <span class="instr">.P3      ABOA  EXP   </span>  <span class="comment"></span></div>
-<div id="s275"><span class="addr">113</span> <span class="instr">         ZFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s276"><span class="addr">114</span> <span class="instr">.P4      TFB   OP3   </span>  <span class="comment"></span></div>
-<div id="s277"><span class="addr">115</span> <span class="instr">         BIZ   P7    </span>  <span class="comment"></span></div>
-<div id="s278"><span class="addr">116</span> <span class="instr">         SFB   F3    </span>  <span class="comment"></span></div>
-<div id="s279"><span class="addr">117</span> <span class="instr">.P5      AAKC  ALL   </span>  <span class="comment"></span></div>
-<div id="s280"><span class="addr">118</span> <span class="instr">         CF    SIGN  </span>  <span class="comment"></span></div>
-<div id="s281"><span class="addr">119</span> <span class="instr">         BIE   P6    </span>  <span class="comment"></span></div>
-<div id="s282"><span class="addr">11A</span> <span class="instr">         FFB   SIGN  </span>  <span class="comment"></span></div>
-<div id="s283"><span class="addr">11B</span> <span class="instr">.P6      EXF   OPFGS </span>  <span class="comment"></span></div>
-<div id="s284"><span class="addr">11C</span> <span class="instr">         ZFB   OPFGS </span>  <span class="comment"></span></div>
-<div id="s285"><span class="addr">11D</span> <span class="instr">.P7      SFA   F3    </span>  <span class="comment"></span></div>
-<div id="s286"><span class="addr">11E</span> <span class="instr">         ZFA   F5    </span>  <span class="comment"></span></div>
-<div id="s287"><span class="addr">11F</span> <span class="instr">         CAB   EXP   </span>  <span class="comment"></span></div>
-<div id="s288"><span class="addr">120</span> <span class="instr">         BILT  RJ    </span>  <span class="comment"></span></div>
-<div id="s289"><span class="addr">121</span> <span class="instr">         SABA  EXP   </span>  <span class="comment"></span></div>
-<div id="s290"><span class="addr">122</span> <span class="instr">.P8      CAK   EXP1  </span>  <span class="comment"></span></div>
-<div id="s291"><span class="addr">123</span> <span class="instr">         BILT  P9    </span>  <span class="comment"></span></div>
-<div id="s292"><span class="addr">124</span> <span class="instr">         SAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s293"><span class="addr">125</span> <span class="instr">         SRLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s294"><span class="addr">126</span> <span class="instr">         BET   P8    </span></div>
-<div id="s295"><span class="addr">127</span> <span class="instr">.ID3     BET   ID4   </span></div>
-<div id="s296"><span class="addr">128</span> <span class="instr">.FD4     BET   DPTPOS</span></div>
-<div id="s297"><span class="addr">129</span> <span class="instr">.P9      AAKA  DPT7  </span>  <span class="comment"></span></div>
-<div id="s298"><span class="addr">12A</span> <span class="instr">         BET   RJ    </span></div>
-<div id="s299"><span class="addr">12B</span> <span class="instr">.KS4     TFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s300"><span class="addr">12C</span> <span class="instr">         BIZ   KS9   </span>  <span class="comment"></span></div>
-<div id="s301"><span class="addr">12D</span> <span class="instr">         AKA   OV1   </span>  <span class="comment">eliminate hex char for sign</span></div>
-<div id="s302"><span class="addr">12E</span> <span class="instr">         SAKA  OV1   </span>  <span class="comment"></span></div>
-<div id="s303"><span class="addr">12F</span> <span class="instr">         CAK   MANT1 </span>  <span class="comment"></span></div>
-<div id="s304"><span class="addr">130</span> <span class="instr">         BILT  KS6   </span>  <span class="comment"></span></div>
-<div id="s305"><span class="addr">131</span> <span class="instr">.KS5     CAK   MSD1  </span>  <span class="comment"></span></div>
-<div id="s306"><span class="addr">132</span> <span class="instr">         BIGE  KS7   </span>  <span class="comment"></span></div>
-<div id="s307"><span class="addr">133</span> <span class="instr">         SLLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s308"><span class="addr">134</span> <span class="instr">         AAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s309"><span class="addr">135</span> <span class="instr">         BET   KS5   </span></div>
-<div id="s310"><span class="addr">136</span> <span class="instr">.KS9     SRLA  MANT  </span>  <span class="comment"></span></div>
-<div id="s311"><span class="addr">137</span> <span class="instr">         SAKA  EXP1  </span>  <span class="comment"></span></div>
-<div id="s312"><span class="addr">138</span> <span class="instr">         BET   KS7   </span></div>
-<div id="s313"><span class="addr">139</span> <span class="instr">.OVF1    TFA   SIGN  </span>  <span class="comment"></span></div>
-<div id="s314"><span class="addr">13A</span> <span class="instr">         BIZ   DPTPOS</span>  <span class="comment"></span></div>
-<div id="s315"><span class="addr">13B</span> <span class="instr">         SAKAH OV1   </span>  <span class="comment"></span></div>
-<div id="s316"><span class="addr">13C</span> <span class="instr">         SAKAH OV1   </span>  <span class="comment"></span></div>
-<div id="s317"><span class="addr">13D</span> <span class="instr">         BILT  DPTPOS</span>  <span class="comment">always branch ?</span></div>
-</div>
+<div id="sourceWindowContainer"><div id="sourceWindow" height=360></div></div>
 </div>
 <div style="clear: both;"></div>
 <p>
@@ -432,100 +118,100 @@ $(document).ready(function() {
 <br/>
 <canvas id="keygrid" width="450" height="170" style="margin-left: 80px"></canvas>
 <table id="registers">
-	<tr><th>D</th>
-		<td id="registers-d10">x</td>
-		<td id="registers-d9">x</td>
-		<td id="registers-d8">x</td>
-		<td id="registers-d7">x</td>
-		<td id="registers-d6">x</td>
-		<td id="registers-d5">x</td>
-		<td id="registers-d4">x</td>
-		<td id="registers-d3">x</td>
-		<td id="registers-d2">x</td>
-		<td id="registers-d1">x</td>
-		<td id="registers-d0">x</td>
-	</tr>
-	<tr><th>A</th>
-		<td id="registers-a10">x</td>
-		<td id="registers-a9">x</td>
-		<td id="registers-a8">x</td>
-		<td id="registers-a7">x</td>
-		<td id="registers-a6">x</td>
-		<td id="registers-a5">x</td>
-		<td id="registers-a4">x</td>
-		<td id="registers-a3">x</td>
-		<td id="registers-a2">x</td>
-		<td id="registers-a1">x</td>
-		<td id="registers-a0">x</td>
-	</tr>
-	<tr><th>B</th>
-		<td id="registers-b10">x</td>
-		<td id="registers-b9">x</td>
-		<td id="registers-b8">x</td>
-		<td id="registers-b7">x</td>
-		<td id="registers-b6">x</td>
-		<td id="registers-b5">x</td>
-		<td id="registers-b4">x</td>
-		<td id="registers-b3">x</td>
-		<td id="registers-b2">x</td>
-		<td id="registers-b1">x</td>
-		<td id="registers-b0">x</td>
-	</tr>
-	<tr><th>C</th>
-		<td id="registers-c10">x</td>
-		<td id="registers-c9">x</td>
-		<td id="registers-c8">x</td>
-		<td id="registers-c7">x</td>
-		<td id="registers-c6">x</td>
-		<td id="registers-c5">x</td>
-		<td id="registers-c4">x</td>
-		<td id="registers-c3">x</td>
-		<td id="registers-c2">x</td>
-		<td id="registers-c1">x</td>
-		<td id="registers-c0">x</td>
-	</tr>
-	<tr><th>AF</th>
-		<td id="registers-af10">x</td>
-		<td id="registers-af9">x</td>
-		<td id="registers-af8">x</td>
-		<td id="registers-af7" title="st">x</td>
-		<td id="registers-af6" title="sign">x</td>
-		<td id="registers-af5" title="post/temp">x</td>
-		<td id="registers-af4" title="equal">x</td>
-		<td id="registers-af3" title="clear display">x</td>
-		<td id="registers-af2" title="op3: operation">x</td>
-		<td id="registers-af1" title="op2: sub/div">x</td>
-		<td id="registers-af0" title="op1: mul/div">x</td>
-	</tr>
-	<tr><th>BF</th>
-		<td id="registers-bf10">x</td>
-		<td id="registers-bf9">x</td>
-		<td id="registers-bf8">x</td>
-		<td id="registers-bf7">x</td>
-		<td id="registers-bf6">x</td>
-		<td id="registers-bf5">x</td>
-		<td id="registers-bf4">x</td>
-		<td id="registers-bf3">x</td>
-		<td id="registers-bf2">x</td>
-		<td id="registers-bf1">x</td>
-		<td id="registers-bf0">x</td>
-	</tr>
-	<tr><th>MASK/K</th>
-		<td id="registers-m10" class="mask">x</td>
-		<td id="registers-m9">x</td>
-		<td id="registers-m8" class="mask">x</td>
-		<td id="registers-m7">x</td>
-		<td id="registers-m6">x</td>
-		<td id="registers-m5" class="mask">x</td>
-		<td id="registers-m4">x</td>
-		<td id="registers-m3">x</td>
-		<td id="registers-m2">x</td>
-		<td id="registers-m1">x</td>
-		<td id="registers-m0">x</td>
-	</tr>
-	<tr class="cond"><th>COND</th>
-		<td colspan=2 id="registers-cc">overflow</td>
-	</tr>
+  <tr><th>D</th>
+    <td id="registers-d10">x</td>
+    <td id="registers-d9">x</td>
+    <td id="registers-d8">x</td>
+    <td id="registers-d7">x</td>
+    <td id="registers-d6">x</td>
+    <td id="registers-d5">x</td>
+    <td id="registers-d4">x</td>
+    <td id="registers-d3">x</td>
+    <td id="registers-d2">x</td>
+    <td id="registers-d1">x</td>
+    <td id="registers-d0">x</td>
+  </tr>
+  <tr><th>A</th>
+    <td id="registers-a10">x</td>
+    <td id="registers-a9">x</td>
+    <td id="registers-a8">x</td>
+    <td id="registers-a7">x</td>
+    <td id="registers-a6">x</td>
+    <td id="registers-a5">x</td>
+    <td id="registers-a4">x</td>
+    <td id="registers-a3">x</td>
+    <td id="registers-a2">x</td>
+    <td id="registers-a1">x</td>
+    <td id="registers-a0">x</td>
+  </tr>
+  <tr><th>B</th>
+    <td id="registers-b10">x</td>
+    <td id="registers-b9">x</td>
+    <td id="registers-b8">x</td>
+    <td id="registers-b7">x</td>
+    <td id="registers-b6">x</td>
+    <td id="registers-b5">x</td>
+    <td id="registers-b4">x</td>
+    <td id="registers-b3">x</td>
+    <td id="registers-b2">x</td>
+    <td id="registers-b1">x</td>
+    <td id="registers-b0">x</td>
+  </tr>
+  <tr><th>C</th>
+    <td id="registers-c10">x</td>
+    <td id="registers-c9">x</td>
+    <td id="registers-c8">x</td>
+    <td id="registers-c7">x</td>
+    <td id="registers-c6">x</td>
+    <td id="registers-c5">x</td>
+    <td id="registers-c4">x</td>
+    <td id="registers-c3">x</td>
+    <td id="registers-c2">x</td>
+    <td id="registers-c1">x</td>
+    <td id="registers-c0">x</td>
+  </tr>
+  <tr><th>AF</th>
+    <td id="registers-af10">x</td>
+    <td id="registers-af9">x</td>
+    <td id="registers-af8">x</td>
+    <td id="registers-af7" title="st">x</td>
+    <td id="registers-af6" title="sign">x</td>
+    <td id="registers-af5" title="post/temp">x</td>
+    <td id="registers-af4" title="equal">x</td>
+    <td id="registers-af3" title="clear display">x</td>
+    <td id="registers-af2" title="op3: operation">x</td>
+    <td id="registers-af1" title="op2: sub/div">x</td>
+    <td id="registers-af0" title="op1: mul/div">x</td>
+  </tr>
+  <tr><th>BF</th>
+    <td id="registers-bf10">x</td>
+    <td id="registers-bf9">x</td>
+    <td id="registers-bf8">x</td>
+    <td id="registers-bf7">x</td>
+    <td id="registers-bf6">x</td>
+    <td id="registers-bf5">x</td>
+    <td id="registers-bf4">x</td>
+    <td id="registers-bf3">x</td>
+    <td id="registers-bf2">x</td>
+    <td id="registers-bf1">x</td>
+    <td id="registers-bf0">x</td>
+  </tr>
+  <tr><th>MASK/K</th>
+    <td id="registers-m10" class="mask">x</td>
+    <td id="registers-m9">x</td>
+    <td id="registers-m8" class="mask">x</td>
+    <td id="registers-m7">x</td>
+    <td id="registers-m6">x</td>
+    <td id="registers-m5" class="mask">x</td>
+    <td id="registers-m4">x</td>
+    <td id="registers-m3">x</td>
+    <td id="registers-m2">x</td>
+    <td id="registers-m1">x</td>
+    <td id="registers-m0">x</td>
+  </tr>
+  <tr class="cond"><th>COND</th>
+    <td colspan=2 id="registers-cc">overflow</td>
+  </tr>
 </table>
 <br/>
 </html>

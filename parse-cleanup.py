@@ -94,7 +94,6 @@ def parseline(line):
 
     line = re.sub('//.*', '', re.sub(';.*', '', line))
     m = re.match('(\d \d{4} \d{4})\s+0(\S+)\s+(\d{2} \d{5} \d{4})\s+(.*)', line)
-    print line
     if m:
         addr = m.group(2)
         op = m.group(3)
@@ -135,11 +134,29 @@ def asm():
     parseequ()
     parselabels()
     objectCode = {}
-    sourceCode = {}
     f = open('calculator_source_edit_6.asm', 'r')
     iAddr = 0
+    outsrc = open('outsrc.html', 'w')
+    print >>outsrc, """
+<style type="text/css">
+	div.src div {
+		font-family: courier, fixed;
+		white-space: pre;
+		color: #ccc;
+	}
+	.addr {
+		color: #844;
+	}
+	.instr {
+		color: #000;
+	}
+	.comment {
+		color: #090;
+	}
+</style>
+<div class="src">
+"""
     for line in f:
-        print line
         [addr, op, label, opcode, opval, comment] = parseline(line)
         if addr:
             iAddr = int(addr, 16)
@@ -156,8 +173,11 @@ def asm():
                 opbin = binfmt(opnum)
                 if comment == '; always branch':
                     comment = ''
-                outline = '%3s %14s  %-8s %-5s %-6s %s' % (addr, op, label, opcode, opval, comment)
-                sourceCode[iAddr] = outline
+                else:
+                    comment = '  <span class="comment">' + comment[2:] + '</span>'
+                print >>outsrc, ('<div id="s%d"><span class="addr">%s</span>' +
+                  ' <span class="instr">%-8s %-5s %-6s</span>%s</div>') % (
+                      iAddr, addr, label, opcode, opval, comment)
                 objectCode[iAddr] = opnum
                 if opbin == op:
                     pass
@@ -167,10 +187,6 @@ def asm():
             else:
                 print 'BAD OP', opcode
     out = open('sourceCode.js', 'w')
-    print >>out, 'var sourceCode = ['
-    for i in range(0, iAddr + 1):
-        print >>out, '  \'%s\',' % sourceCode[i]
-    print >>out, '];'
     print >>out, 'var objectCode = ['
     for i in range(0, iAddr + 1):
         print >>out, '  %d,' % objectCode[i]

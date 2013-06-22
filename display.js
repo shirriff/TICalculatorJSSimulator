@@ -30,12 +30,14 @@ var Display = function(elem, model) {
       if (model.a[i] == 0 && zeroSuppress) {
 	str += ' ';
       } else if (model.a[i] == 14) {
-        str += model.a[i];
+        str += '-';
       } else {
         str += model.a[i];
       }
       if (model.b[i] == 2) {
 	dpt = i;
+      }
+      if (model.b[i+1] == 2) {
 	zeroSuppress = 0;
       }
     }

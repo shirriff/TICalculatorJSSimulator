@@ -69,6 +69,7 @@ photos = gd_client.GetFeed(
     '/data/feed/api/user/%s/albumid/%s?kind=photo' % (
         username, album.gphoto_id.text))
 for photo in photos.entry:
+  if photo.title.text in photohtml: print 'collision on', photo.title.text
   if photo.timestamp.isoformat() < DATE: continue
   if photo.summary.text:
     text = photo.summary.text.replace('"', '\'')

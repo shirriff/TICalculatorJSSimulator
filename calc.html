@@ -91,8 +91,8 @@
 <script>
 
 $(document).ready(function() {
-  var calcImage = new CalcImage($("#calcImage"));
   var model = new Model(objectCode);
+  var calcImage = new CalcImage($("#calcImage"), model);
   var keygrid = new Keygrid($("#keygrid")[0], model);
   var registers = new Registers($("#registers")[0], model);
   var display = new Display($("#display"), model);

@@ -25,4 +25,7 @@ var Model = function(objectCode) {
   this.display = 1; // Flag for display on
   this.mask = null;
   this.showDisplayScan = 0;
+  this.idle = 0; // 1 if in idle loop
+  this.fast = 0; // Fast updates
+
 };

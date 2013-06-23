@@ -44,22 +44,38 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   stopButton.hide();
 
   var updateInt = function() {
-    keygrid.update();
-    display.update();
-    display2.update();
-    registers.update();
-    instruction.update();
-    sourceWindow.update();
+    if (model.fast ==0 || model.idle == 1) {
+      keygrid.update();
+      display.update();
+      display2.update();
+      registers.update();
+      instruction.update();
+      sourceWindow.update();
+    } else {
+      keygrid.update(1 /* fast */);
+    }
   }
 
   updateInt();
 
   this.update = function() {
-    that.cpu.step();
+    // Hack to detect idle loop. Release any pressed key.
+    if (model.address == 0x22) {
+      model.keyPressed = '';
+    }
+    if (model.rom[model.address] >> 4 == 0x52 && model.keyPressed == '') { // WAITNO
+      model.idle = 1;
+    } else {
+      model.idle = 0;
+    }
+
+    cpu.step();
     updateInt();
-    that.keygrid.update();
+    keygrid.update();
     if (model.running) {
-      setTimeout(that.update, 1);
+      // Slow down the loop if we're in the idle loop to save CPU
+      setTimeout(that.update, model.idle ? 250 : 1);
     }
   };
+  playButton.click(); // Start it running
 };

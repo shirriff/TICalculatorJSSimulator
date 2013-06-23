@@ -1,5 +1,6 @@
 // Clickable image of the calculator
 var CalcImage = function(elem, model) {
+  this.model = model;
   // Initialize the positions of the keys in the image
   var xvals = [[45, 92], [108, 154], [171, 217], [233, 280]];
   var xbotvals = [[45, 125], [139, 187], [202, 280]];
@@ -56,7 +57,7 @@ var CalcImage = function(elem, model) {
     var parentOffset = $(this).parent().offset(); 
     var x = e.pageX - parentOffset.left;
     var y = e.pageY - parentOffset.top;
-    if (that.findKey(x, y) == null) {
+    if (that.findKey(x, y) == null || that.model.idle == 0) {
       elem.css( 'cursor', 'default' );
     } else {
       elem.css( 'cursor', 'pointer' );

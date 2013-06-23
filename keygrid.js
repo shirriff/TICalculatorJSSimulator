@@ -13,13 +13,17 @@ var Keygrid = function(elem, model) {
   var XSPACING = 50;
   var YSPACING = 45;
 
-  this.update = function() {
-    // Hack to release key when idle loop is reached
-    if (model.address == 0x22) {
-      model.keyPressed = '';
-    }
-
+  this.update = function(fast) {
     model.keyStrobe = 0;
+    if (fast) {
+      // Skip the graphics and just check the keyStrobe
+      for (var row = 0; row < 3; row++) {
+	if (model.keyPressed && this.keys[row][model.dActive - 1] == model.keyPressed) {
+	  model.keyStrobe = ['KN', 'KO', 'KP'][row]; // Cleared at beginning of method
+	}
+      }
+      return;
+    }
     context.save();
     context.transform(1, 0, 0, 1, .5, .5);
     for (var col = 0; col < 9; col++) {

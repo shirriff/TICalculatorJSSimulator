@@ -1,8 +1,14 @@
 <html>
-<body>
+  <!--
+TI calculator simulator
+Ken Shirriff, http://righto.com/ti
+Based on patent US3934233
+-->
+  <head>
   <!--
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
 -->
+<link href='http://fonts.googleapis.com/css?family=Chivo:400' rel='stylesheet' type='text/css'/>
 
 <script src="jquery.min.js"></script>
 <script src="calcImage.js"></script>
@@ -15,25 +21,88 @@
 <script src="registers.js"></script>
 <script src="sourceCode.js"></script>
 <script src="sourceWindow.js"></script>
+<!-- header styles -->
 <style type="text/css">
   body {
     font-family: arial;
+    font-size: small;
+    margin: 0;
   }
+
+  #header {
+    padding: 0;
+    margin: 0;
+    border-top: dotted 1px #444444;
+    border-bottom: dotted 1px #444444;
+    background: #f6fbf7;
+  }
+
+  h1 {
+    margin: 8px 0 0 0;
+    padding-top:20px;
+    padding-right:0px;
+    padding-bottom:2px;
+    padding-left:5%;
+    color:#444444;
+    background:#f6fbf7;
+    font:normal 300% Chivo,Verdana,Sans-Serif;
+    letter-spacing:-2px;
+  }
+
+  .description {
+    padding:0px;
+    margin-top:7px;
+    margin-right:12%;
+    margin-bottom:7px;
+    margin-left:5%;
+    color:#444444;
+    background:transparent;
+    font:bold 100% Verdana,Sans-Serif;
+  }
+</style>
+  
+<!-- content styles -->
+<style type="text/css">
+  .content {
+    margin: 20px;
+  }
+
+  h3 {
+    color: #444444;
+    font: normal 160% Verdana,Sans-Serif;
+    letter-spacing: -1px;
+  }
+
+  #calcImageDiv {
+    float: left;
+    height:400px;
+    position: relative;
+  }
+
+  #calcImage {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
   button {
     border: 1px solid #ccc;
     width: 33px;
     height: 33px;
     cursor: pointer;
   }
+
   .cond, .cond th, .cond tr, .cond td {
     border: none !important;
     line-height: 2em;
     text-align: left !important;
   }
+
   #registers {
     border-collapse: collapse;
     border-right: 1px solid #ddd;
   }
+
   #registers th {
     font-weight: bold;
     text-align: right;
@@ -42,6 +111,7 @@
     max-width: 70px;
     width: 70px;
   }
+
   #registers td {
     text-align: center;
     min-width: 48px;
@@ -49,9 +119,11 @@
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
   }
+
   .mask {
     background-color: #fcc;
   }
+
   #sourceWindowContainer {
     font-size: 14px;
     line-height: 1em;
@@ -72,21 +144,23 @@
     white-space: pre;
     color: #ccc;
   }
+
   .addr {
     color: #844;
   }
+
   .instr {
     color: #000;
   }
+  
   .comment {
     color: #090;
   }
+
   .highlight {
     background-color: #fcc;
   }
 </style>
-
-
 
 <script>
 
@@ -103,16 +177,39 @@ $(document).ready(function() {
   var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
     registers, instruction, $("#playButton"), $("#stopButton"), $("#stepButton"));
 });
-
-
 </script>
-
+</head>
 </body>
-<div style="position: relative; float: left; height:400px;">
-  <img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400 style="position: absolute; top: 0; left: 0;";></img>
+<div id="header-wrapper">
+<div class="header section" id="header"><div class="widget Header" id="Header1">
+<div id="header-inner" style="background-image: url(&quot;https://lh5.googleusercontent.com/-OyFd36t2Doo/T7nMSchO46I/AAAAAAAAKjM/ynuhCCEf_bs/s800/background.jpg&quot;); background-position: right ; min-height: 105px; height: 105px; background-repeat: no-repeat; ">
+<div class="titlewrapper" style="background: transparent">
+<h1 class="title" style="background: transparent; border-width: 0px">
+Ken Shirriff's blog
+</h1>
+</div>
+<div class="descriptionwrapper">
+<p class="description"><span>Chargers, microprocessors, Arduino, and whatever</span></p>
+</div>
+</div>
+</div></div>
+</div>
+
+<div class="content">
+  <h3>Simulating a Texas Instruments calculator with 11-bit opcodes</h3>
+  This is a simulator of a simple Texas Instruments calculator. This page simulates the CPU and registers, and actually runs the calculator's code.
+  <p>
+  Click keys on the calculator image, waiting a few seconds between each click. You can stop or single-step the simulator using the buttons on the right.
+  <p>
+  The source code window shows the code that is being executed. Underneath, the display and keyboard matrix show how the one column of the display and keyboard gets scanned each operation. The register display at the bottom shows the digit scan register, the 11-digit A, B, and C registers, the 11-bit A flag and B flag registers, the current mask and constant value, and the condition code.
+  <p>
+  This simulator is based on the extremely detailed description in the <a href="https://www.google.com/patents/US3934233">patent</a>.
+  <p style="padding-bottom: 15px;">
+<div id="calcImageDiv">
+  <img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400></img>
   <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
 </div>
-<div style="margin-left: 250px; ">
+<div style="margin-left: 240px; ">
   <button id="playButton" title="run" style="background:url(images/play.png) no-repeat 2px 2px;"></button>
   <button id="stopButton" title="stop" style="background:url(images/stop.png) no-repeat 2px 2px;"></button>
   <button id="stepButton" title="step" style="background:url(images/step.png) no-repeat 2px 2px;"></button>
@@ -128,99 +225,101 @@ $(document).ready(function() {
 <canvas id="keygrid" width="450" height="170" style="margin-left: 80px"></canvas>
 <table id="registers">
   <tr><th>D</th>
-    <td id="registers-d10">x</td>
-    <td id="registers-d9">x</td>
-    <td id="registers-d8">x</td>
-    <td id="registers-d7">x</td>
-    <td id="registers-d6">x</td>
-    <td id="registers-d5">x</td>
-    <td id="registers-d4">x</td>
-    <td id="registers-d3">x</td>
-    <td id="registers-d2">x</td>
-    <td id="registers-d1">x</td>
-    <td id="registers-d0">x</td>
+    <td id="registers-d10"></td>
+    <td id="registers-d9"></td>
+    <td id="registers-d8"></td>
+    <td id="registers-d7"></td>
+    <td id="registers-d6"></td>
+    <td id="registers-d5"></td>
+    <td id="registers-d4"></td>
+    <td id="registers-d3"></td>
+    <td id="registers-d2"></td>
+    <td id="registers-d1"></td>
+    <td id="registers-d0"></td>
   </tr>
   <tr><th>A</th>
-    <td id="registers-a10">x</td>
-    <td id="registers-a9">x</td>
-    <td id="registers-a8">x</td>
-    <td id="registers-a7">x</td>
-    <td id="registers-a6">x</td>
-    <td id="registers-a5">x</td>
-    <td id="registers-a4">x</td>
-    <td id="registers-a3">x</td>
-    <td id="registers-a2">x</td>
-    <td id="registers-a1">x</td>
-    <td id="registers-a0">x</td>
+    <td id="registers-a10"></td>
+    <td id="registers-a9"></td>
+    <td id="registers-a8"></td>
+    <td id="registers-a7"></td>
+    <td id="registers-a6"></td>
+    <td id="registers-a5"></td>
+    <td id="registers-a4"></td>
+    <td id="registers-a3"></td>
+    <td id="registers-a2"></td>
+    <td id="registers-a1"></td>
+    <td id="registers-a0"></td>
   </tr>
   <tr><th>B</th>
-    <td id="registers-b10">x</td>
-    <td id="registers-b9">x</td>
-    <td id="registers-b8">x</td>
-    <td id="registers-b7">x</td>
-    <td id="registers-b6">x</td>
-    <td id="registers-b5">x</td>
-    <td id="registers-b4">x</td>
-    <td id="registers-b3">x</td>
-    <td id="registers-b2">x</td>
-    <td id="registers-b1">x</td>
-    <td id="registers-b0">x</td>
+    <td id="registers-b10"></td>
+    <td id="registers-b9"></td>
+    <td id="registers-b8"></td>
+    <td id="registers-b7"></td>
+    <td id="registers-b6"></td>
+    <td id="registers-b5"></td>
+    <td id="registers-b4"></td>
+    <td id="registers-b3"></td>
+    <td id="registers-b2"></td>
+    <td id="registers-b1"></td>
+    <td id="registers-b0"></td>
   </tr>
   <tr><th>C</th>
-    <td id="registers-c10">x</td>
-    <td id="registers-c9">x</td>
-    <td id="registers-c8">x</td>
-    <td id="registers-c7">x</td>
-    <td id="registers-c6">x</td>
-    <td id="registers-c5">x</td>
-    <td id="registers-c4">x</td>
-    <td id="registers-c3">x</td>
-    <td id="registers-c2">x</td>
-    <td id="registers-c1">x</td>
-    <td id="registers-c0">x</td>
+    <td id="registers-c10"></td>
+    <td id="registers-c9"></td>
+    <td id="registers-c8"></td>
+    <td id="registers-c7"></td>
+    <td id="registers-c6"></td>
+    <td id="registers-c5"></td>
+    <td id="registers-c4"></td>
+    <td id="registers-c3"></td>
+    <td id="registers-c2"></td>
+    <td id="registers-c1"></td>
+    <td id="registers-c0"></td>
   </tr>
   <tr><th>AF</th>
-    <td id="registers-af10" title="dpt">x</td>
-    <td id="registers-af9">x</td>
-    <td id="registers-af8">x</td>
-    <td id="registers-af7" title="st">x</td>
-    <td id="registers-af6" title="sign">x</td>
-    <td id="registers-af5" title="post/temp">x</td>
-    <td id="registers-af4" title="equal">x</td>
-    <td id="registers-af3" title="clear display">x</td>
-    <td id="registers-af2" title="op3: operation">x</td>
-    <td id="registers-af1" title="op2: sub/div">x</td>
-    <td id="registers-af0" title="op1: mul/div">x</td>
+    <td id="registers-af10" title="dpt"></td>
+    <td id="registers-af9"></td>
+    <td id="registers-af8"></td>
+    <td id="registers-af7" title="st"></td>
+    <td id="registers-af6" title="sign"></td>
+    <td id="registers-af5" title="post/temp"></td>
+    <td id="registers-af4" title="equal"></td>
+    <td id="registers-af3" title="clear display"></td>
+    <td id="registers-af2" title="op3: operation"></td>
+    <td id="registers-af1" title="op2: sub/div"></td>
+    <td id="registers-af0" title="op1: mul/div"></td>
   </tr>
   <tr><th>BF</th>
-    <td id="registers-bf10" title="fd">x</td>
-    <td id="registers-bf9">x</td>
-    <td id="registers-bf8">x</td>
-    <td id="registers-bf7">x</td>
-    <td id="registers-bf6" title="sign">x</td>
-    <td id="registers-bf5" title="ovf">x</td>
-    <td id="registers-bf4" title="post/temp">x</td>
-    <td id="registers-bf3" title="const">x</td>
-    <td id="registers-bf2" title="op3: operation">x</td>
-    <td id="registers-bf1" title="op2: sub/div">x</td>
-    <td id="registers-bf0" title="op1: mul/div">x</td>
+    <td id="registers-bf10" title="fd"></td>
+    <td id="registers-bf9"></td>
+    <td id="registers-bf8"></td>
+    <td id="registers-bf7"></td>
+    <td id="registers-bf6" title="sign"></td>
+    <td id="registers-bf5" title="ovf"></td>
+    <td id="registers-bf4" title="post/temp"></td>
+    <td id="registers-bf3" title="const"></td>
+    <td id="registers-bf2" title="op3: operation"></td>
+    <td id="registers-bf1" title="op2: sub/div"></td>
+    <td id="registers-bf0" title="op1: mul/div"></td>
   </tr>
   <tr><th>MASK/K</th>
-    <td id="registers-m10" class="mask">x</td>
-    <td id="registers-m9">x</td>
-    <td id="registers-m8" class="mask">x</td>
-    <td id="registers-m7">x</td>
-    <td id="registers-m6">x</td>
-    <td id="registers-m5" class="mask">x</td>
-    <td id="registers-m4">x</td>
-    <td id="registers-m3">x</td>
-    <td id="registers-m2">x</td>
-    <td id="registers-m1">x</td>
-    <td id="registers-m0">x</td>
+    <td id="registers-m10"></td>
+    <td id="registers-m9"></td>
+    <td id="registers-m8"></td>
+    <td id="registers-m7"></td>
+    <td id="registers-m6"></td>
+    <td id="registers-m5"></td>
+    <td id="registers-m4"></td>
+    <td id="registers-m3"></td>
+    <td id="registers-m2"></td>
+    <td id="registers-m1"></td>
+    <td id="registers-m0"></td>
   </tr>
   <tr class="cond"><th>COND</th>
     <td colspan=2 id="registers-cc">overflow</td>
   </tr>
 </table>
-<br/>
+<p>
+Credits: source code entered by Phil Mainwaring. Calculator <a href="http://commons.wikimedia.org/wiki/File:TI_DataMath_2500.jpg">image</a> from <a href="//de.wikipedia.org/wiki/Ralf_Pfeifer" title="de:Ralf Pfeifer">Ralf Pfeifer</a> at <a href="http://de.wikipedia.org">de.wikipedia</a>. Built using <a href="http://jquery.com/">jQuery</a> and tested with <a href="http://qunitjs.com/">QUnit</a>. Inspired by <a href="http://visual6502.org/">Visual 6502</a>.
+</div>
 </html>

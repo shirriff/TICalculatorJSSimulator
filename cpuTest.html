@@ -135,12 +135,12 @@ This file holds unittests for cpu.js, based on qunit.
     });
 
     test( "mask0", function() {
-      model.rom[0x42] = 0; // Mask 0
+      model.rom[0x42] = AABA | 0; // Mask 0
       deepEqual(cpu.getMask(), [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 7]);
     });
 
     test( "mask11", function() {
-      model.rom[0x42] = 11; // Mask 0
+      model.rom[0x42] = AABA | 11; // Mask 0
       deepEqual(cpu.getMask(), [0, 0, 0, 0, 0, 0, 0, 0, 1, ' ', ' ']);
     });
 

@@ -34,17 +34,26 @@ var Cpu = function(model) {
   // Get the mask vector associated with the current instruction's mask
   // Entries are ' ' if not masked, 0 if mask, n if mask and constant.
   // Note that S10 is in mask[0]
+  // Returns null if mask is not appropriate for this instruction
   this.getMask = function() {
-    var mask = this.masks[this.getMaskNum()];
-    var maskVec = [];
-    for (var i = 0; i <= 10; i++) {
-      if (mask[i] === ' ') {
-	maskVec.push(mask[i]);
-      } else {
-	maskVec.push(parseInt(mask[i]));
+    var instruction = this.model.rom[this.model.address];
+    var classBits = instruction >> 9;
+    var opcode = (instruction >> 4) & 0x1f;
+    if (classBits == 3 || (classBits == 2 && opcode > 18 &&
+	  opcode != 21 && opcode != 22)) {
+      var mask = this.masks[this.getMaskNum()];
+      var maskVec = [];
+      for (var i = 0; i <= 10; i++) {
+	if (mask[i] === ' ') {
+	  maskVec.push(mask[i]);
+	} else {
+	  maskVec.push(parseInt(mask[i]));
+	}
       }
+      return maskVec;
+    } else {
+      return null;
     }
-    return maskVec;
   }
 
   this.step = function() {
@@ -285,13 +294,7 @@ var Cpu = function(model) {
     }
     this.model.address = nextAddress;
     // Put the mask for the next instruction in the model for display
-    if (classBits == 3 || (classBits == 2 && opcode > 18 &&
-	  opcode != 21 && opcode != 22)) {
-      this.model.mask = this.getMask();
-    } else {
-      // Don't show mask for instructions that don't need it: WAITDK, WAITNO, SYNC, SCAN, jumps
-      this.model.mask = null;
-    }
+    this.model.mask = this.getMask();
     // Update D state
     this.updateD();
   };

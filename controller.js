@@ -60,6 +60,7 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
     );
   stopButton.hide();
 
+  // Post-cpu updates
   var updateInt = function() {
     if (model.fast ==0 || model.idle == 1) {
       keygrid.update();

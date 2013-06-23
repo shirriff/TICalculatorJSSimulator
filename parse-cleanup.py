@@ -174,7 +174,7 @@ def asm():
 //
 // This file holds the source and object code to be executed.
 
-var sourceCode = ['
+var sourceCode = [\
 """
     for i in range(0, iAddr + 1):
         print >>out, sourceCode[i]

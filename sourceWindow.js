@@ -38,7 +38,7 @@ var SourceWindow = function(elem, model, sourceCode) {
       if (top < 0) {
 	top = 0;
       }
-      elem.css('margin-top', '-' + top + 'em');
+      elem.scrollTop(top * 12);
     }
   }
 };

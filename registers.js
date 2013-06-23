@@ -33,6 +33,9 @@ var Registers = function(elem, model) {
     }
 
     $("#registers-cc").text(model.cc + ' ' + model.ccMeaning);
+    var binaryInstr = ('000000000000' + model.rom[model.address].toString(2)).substr(-11);
+    $("#registers-i").text(binaryInstr.substr(0, 2) + ' ' + binaryInstr.substr(2, 5) +
+	' ' + binaryInstr.substr(7));
 
   };
 };

@@ -5,12 +5,9 @@ Ken Shirriff, http://righto.com/ti
 Based on patent US3934233
 -->
   <head>
-  <!--
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
--->
 <link href='http://fonts.googleapis.com/css?family=Chivo:400' rel='stylesheet' type='text/css'/>
 
-<script src="jquery.min.js"></script>
 <script src="calcImage.js"></script>
 <script src="controller.js"></script>
 <script src="cpu.js"></script>
@@ -94,8 +91,11 @@ Based on patent US3934233
 
   .cond, .cond th, .cond tr, .cond td {
     border: none !important;
-    line-height: 2em;
     text-align: left !important;
+  }
+
+  td {
+    font-family: courier, fixed;
   }
 
   #registers {
@@ -196,23 +196,21 @@ Ken Shirriff's blog
 </div>
 
 <div class="content">
-  <h3>Simulating a Texas Instruments calculator with 11-bit opcodes</h3>
+  <h3>Simulating a TI calculator with crazy 11-bit opcodes (alpha, still under development)</h3>
   This is a simulator of a simple Texas Instruments calculator. This page simulates the CPU and registers, and actually runs the calculator's code.
   <p>
-  Click keys on the calculator image, waiting a few seconds between each click. You can stop or single-step the simulator using the buttons on the right.
+  Click keys on the calculator image. Wait a few seconds for each key to be processed or your keys will get ignored. You can stop or single-step the simulator using the buttons on the right.
   <p>
-  The source code window shows the code that is being executed. Underneath, the display and keyboard matrix show how the one column of the display and keyboard gets scanned each operation. The register display at the bottom shows the digit scan register, the 11-digit A, B, and C registers, the 11-bit A flag and B flag registers, the current mask and constant value, and the condition code.
+  The source code window shows the code that is being executed. Underneath, the display and keyboard matrix show how the one column of the display and keyboard gets scanned each operation. The register display at the bottom shows the digit scan register, the 11-digit A, B, and C registers, the 11-bit A flag and B flag registers, the current mask and constant value, the current 11-bit op code, and the condition code.
   <p>
-  This simulator is based on the extremely detailed description in the <a href="https://www.google.com/patents/US3934233">patent</a>.
-  <p style="padding-bottom: 15px;">
 <div id="calcImageDiv">
   <img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400></img>
   <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
 </div>
 <div style="margin-left: 240px; ">
-  <button id="playButton" title="run" style="background:url(images/play.png) no-repeat 2px 2px;"></button>
-  <button id="stopButton" title="stop" style="background:url(images/stop.png) no-repeat 2px 2px;"></button>
-  <button id="stepButton" title="step" style="background:url(images/step.png) no-repeat 2px 2px;"></button>
+  <button id="playButton" title="run" style="background:url(http://files.righto.com/images/play.png) no-repeat 2px 2px;"></button>
+  <button id="stopButton" title="stop" style="background:url(http://files.righto.com/images/stop.png) no-repeat 2px 2px;"></button>
+  <button id="stepButton" title="step" style="background:url(http://files.righto.com/images/step.png) no-repeat 2px 2px;"></button>
   <br/>
   <div id="sourceWindowContainer"><div id="sourceWindow"></div></div>
   <div id="instruction"></div>
@@ -315,11 +313,48 @@ Ken Shirriff's blog
     <td id="registers-m1"></td>
     <td id="registers-m0"></td>
   </tr>
-  <tr class="cond"><th>COND</th>
-    <td colspan=2 id="registers-cc">overflow</td>
+  <tr class="cond"><th>Instr</th>
+    <td colspan=4 id="registers-i" style="font-family: courier, fixed"></td>
+  </tr>
+  <tr class="cond"><th>Cond</th>
+    <td colspan=4 id="registers-cc"></td>
   </tr>
 </table>
 <p>
-Credits: source code entered by Phil Mainwaring. Calculator <a href="http://commons.wikimedia.org/wiki/File:TI_DataMath_2500.jpg">image</a> from <a href="//de.wikipedia.org/wiki/Ralf_Pfeifer" title="de:Ralf Pfeifer">Ralf Pfeifer</a> at <a href="http://de.wikipedia.org">de.wikipedia</a>. Built using <a href="http://jquery.com/">jQuery</a> and tested with <a href="http://qunitjs.com/">QUnit</a>. Inspired by <a href="http://visual6502.org/">Visual 6502</a>.
+<h4>Architecture</h4>
+The processor for this calculator has many unusual architectural features. It's interesting to examine this chip and discover how many CPU features that we take for granted can actually be done very differently.
+<p>
+The three registers (A, B, and C) hold eleven decimal digits, and the arithmetic takes place in decimal. The chip supports multi-digit decimal addition and subtraction, but not multiplcation or division.
+<p>
+Each instruction is an 11 bit opcode, which comes from a ROM that has 320 11-bit words. An eleven bit instruction set seems very unusual, but it allows all instructions to fit into a single word. The first two bits are the "class", selecting the type of instruction. The next 5 bits select the specific instruction. The final five bits select the mask and constant.
+<p>
+One of the most unusual features of this processor is that operations have a mask that selects which digits are affected. For instance, when adding the A and B registers, a single digit can be added, all 11 digits can be added, or the two highest digits can be added. Likewise, an operation can act on a single flag, the three lowest flags, or other combinations. In total, there are 16 different masks. This gives the processor a lot of flexibility, and allows a single operation to process multiple digits without requiring a loop.
+<p>
+The mask bits also select a constant value associated with a mask. For instance, the lowest digit can be incremented by 7 or the second digit can be incremented by 4, or 0 can be stored into all the digits. Most processors use a second instruction word to specify constant values, but the TI processor folds the constants into the single instruction.  The full list of masks and constants is <a href="https://patentimages.storage.googleapis.com/pages/US3934233-33.png">here</a>.
+<p>
+The two 11-bit flag registers AF and BF are a very important part of the processor with almost half of the instructions operating on the flags. The set, clear, test, compare, and exchange operations are also controlled by the mask, so they can operate on a single bit or multiple bits at a time. Boolean operations are notably missing.
+<p>
+One feature of the chip specially designed for calculators is the digit scan register, which cycles through 10 scan lines. These lines illuminate one digit at a time. They also scan the key matrix to detect key presses. Several of the instructions are tied closely to the digit scan. For instance, <code>AKCN</code> increments A each scan until a key is found. Since keys 1 through 9 and tied to scan lines 1 through 9, the result is the desired digit value. Similarly <code>SYNC</code> synchronizes execution to the scan.
+<p>
+The chip has a single condition bit. Depending on the instruction, this holds the status for key down, carry, borrow, equality, or zero. Most processors use multiple condition flags, but here there's a single flag and the programmer needs to keep track of what it holds. The condition flag is used to control conditional branches. There is no unconditional branch - the BET (branch every time) instruction is just a condition branch when the programmer knows the condition flag is clear. The top two class bits indicate a conditional branch, leaving 9 bits for the address. Thus, conditional branches fit in a single word, unlike most processors.
+<p>
+There's not always space for the whole address, though.  The <code>WAITNO</code> and <code>WAITDK</code> instructions branch when a key is pressed. The bizarre thing about these instructions is that the opcode takes up most of the address bits, so there is little choice about where the branch ends up. The destination instruction is forced to go in a small area, even if that's in the middle of an unrelated block of code.
+<h4>Algorithms</h4>
+The chip patent includes the full source code for the calculator, implementing addition, subtraction, multiplication, and division.  The chip doesn't support multiplication or division directly so multiplication is performed by repeated addition, and division is performed by repeated subtraction, very similar to grade-school multiplication and long division.
+<p>
+During computation, numbers are represented as a sign flag, a 9-digit mantissa, and a 2 digit exponent. The exponent indicates how many digits are after the decimal point. e.g. 1.23 has a mantissa of 123 and an exponent of 2. Numbers are shifted left and aligned during computation so 1.23 can also be represented mantissa 12300000 and exponent 7. You can see the numbers getting shifted left and right during computation.
+<p>
+For display, the A register holds the sign (represented by the number 14) and the displayed digits. The B register indicates the position of the decimal point by having the digit 2 at the decimal point position. This may seem bizarre, but it simplifies the display hardware.
+<p>
+As an outline of the code, it starts with <code>CLEAR</code>, which resets everything. The <code>LOCK</code> loop waits for keys to get released, and then <code>IDLE</code> waits for a key press. <code>KEY</code> waits a bit to debounce the key and then scans for a non-digit key. Then it counts the scans to get the value of any digit key. A digit is appended to A and then <code>DPTPOS</code> sets B to display the decimal point correctly.
+<p>
+To perform addition or subtraction, the two arguments are aligned along their decimal points, added or subtracted, and the sign set appropriately. Multiplication is done by repeatedly adding, multiplying by 10, and continuing through all the digits. Division is done by repeatedly subtracting, multiplying by 10, and continuing through all the digits. After the operation, the <code>POST</code> code normalizes the result and handles any overflow.
+<p>
+Additional code handles constant operations, a more advanced feature than you'd expect to find in a simple calculator. E.g. if you enter "3 * 6 = ", followed by "9 =", the calculator remembers the previous "* 6" operation and computes "9 * 6". (Sort of <a href="http://en.wikipedia.org/wiki/Currying">currying</a>.) The constant mantissa is stored in C, the exponent is stored in B, and the operation is stored in the AF flags. Likewise, "5 * = = " computes 5 cubed.
+<p>
+It's interesting to watch the digits bounce back and forth, even for simple computations. There's a lot more happening in a calculator and more programming involved than you might think.
+<h4>Credits</h4>
+This simulator is based on the extremely detailed 50 page <a href="https://www.google.com/patents/US3934233">patent</a>, which is one of the most informative patents I've seen.  <p style="padding-bottom: 15px;">
+Source code entered by Phil Mainwaring. Calculator <a href="http://commons.wikimedia.org/wiki/File:TI_DataMath_2500.jpg">image</a> from <a href="//de.wikipedia.org/wiki/Ralf_Pfeifer" title="de:Ralf Pfeifer">Ralf Pfeifer</a> at <a href="http://de.wikipedia.org">de.wikipedia</a>. Built using <a href="http://jquery.com/">jQuery</a> and tested with <a href="http://qunitjs.com/">QUnit</a>. Inspired by <a href="http://visual6502.org/">Visual 6502</a>.
 </div>
 </html>

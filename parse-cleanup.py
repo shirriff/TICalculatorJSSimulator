@@ -106,7 +106,7 @@ def parseline(line):
             label = ''
             opcode = ops[0]
             opval = ops[1] if len(ops) > 1 else ''
-        return [addr, op, label, opcode, opval, comment.lower()]
+        return [addr, op, label, opcode, opval, comment]
     else:
         return [None]*6
 
@@ -155,7 +155,7 @@ def asm():
                 if comment == '; always branch' or comment == '':
                     comment = ''
                 else:
-                    comment = ' ' + comment
+                    comment = ' ' + comment.replace("'", "\\'")
                 outline = '\'%-8s %-6s %-6s%s\',' % (label, opcode, opval, comment)
                 sourceCode[iAddr] = outline
                 objectCode[iAddr] = opnum

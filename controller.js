@@ -90,6 +90,14 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
     cpu.step();
     updateInt();
     keygrid.update();
+
+    // Get breakpoint query parameter
+    var breakpoint = (RegExp('breakpoint=' + '(.+?)(&|$)').exec(location.search)||[,null])[1];
+    // Stop if address hits breakpoint
+    if (breakpoint && parseInt(breakpoint, 16) == model.address) {
+      stopButton.click();
+    }
+
     if (model.running) {
       // Slow down the loop if we're in the idle loop to save CPU
       setTimeout(that.update, model.idle ? 250 : 1);

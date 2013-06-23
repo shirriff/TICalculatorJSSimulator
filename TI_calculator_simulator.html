@@ -56,6 +56,26 @@ Based on patent US3934233
     background:transparent;
     font:bold 100% Verdana,Sans-Serif;
   }
+
+  div.cite {font-size: .8em;.; font-style: italic; color: #888; margin-bottom: 9px;}
+
+  .cite a {color: #888 !important;}
+
+  a.ref { color: gray;vertical-align: super; text-decoration: none; font-size:60%;margin-left: 2px;}
+
+  a img.hilite {
+    border: 1px solid;
+    color: #888;
+  }
+  a:link img.hilite, a:visited img.hilite {
+    color: #888;
+  }
+  a:hover img.hilite {
+    color: #f66;
+  }
+  a:active img.hilite {
+    color: #33c;
+  }
 </style>
   
 <!-- content styles -->
@@ -201,8 +221,6 @@ Ken Shirriff's blog
   <p>
   Click keys on the calculator image. Wait a few seconds for each key to be processed or your keys will get ignored. You can stop or single-step the simulator using the buttons on the right.
   <p>
-  The source code window shows the code that is being executed. Underneath, the display and keyboard matrix show how the one column of the display and keyboard gets scanned each operation. The register display at the bottom shows the digit scan register, the 11-digit A, B, and C registers, the 11-bit A flag and B flag registers, the current mask and constant value, the current 11-bit op code, and the condition code.
-  <p>
 <div id="calcImageDiv">
   <img id="calcImage" src="http://files.righto.com/calculator/TI_DataMath_2500.jpg" width=220 height=400></img>
   <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
@@ -321,6 +339,8 @@ Ken Shirriff's blog
   </tr>
 </table>
 <p>
+The source code window shows the code that is being executed. Underneath, the display and keyboard matrix show how the one column of the display and keyboard gets scanned each operation. The register display at the bottom shows the digit scan register, the 11-digit A, B, and C registers, the 11-bit A flag and B flag registers, the current mask and constant value, the current 11-bit op code, and the condition code.
+<p>
 <h4>Architecture</h4>
 The processor for this calculator has many unusual architectural features. It's interesting to examine this chip and discover how many CPU features that we take for granted can actually be done very differently.
 <p>
@@ -343,6 +363,16 @@ One feature of the chip specially designed for calculators is the digit scan reg
 The chip has a single condition bit. Depending on the instruction, this holds the status for key down, carry, borrow, equality, or zero. Most processors use multiple condition flags, but here there's a single flag and the programmer needs to keep track of what it holds. The condition flag is used to control conditional branches. There is no unconditional branch - the BET (branch every time) instruction is just a condition branch when the programmer knows the condition flag is clear. The top two class bits indicate a conditional branch, leaving 9 bits for the address. Thus, conditional branches fit in a single word, unlike most processors.
 <p>
 There's not always space for the whole address, though.  The <code>WAITNO</code> and <code>WAITDK</code> instructions branch when a key is pressed. The bizarre thing about these instructions is that the opcode takes up most of the address bits, so there is little choice about where the branch ends up. The destination instruction is forced to go in a small area, even if that's in the middle of an unrelated block of code.
+<p>
+If you want to know more about the chip, the architecture diagram and schematic are extremely detailed.
+<p>
+<a href="https://www.google.com/patents/US3934233"><img class="hilite" src="https://lh5.googleusercontent.com/-9arWpZn1KEA/UcZ3tMdSf8I/AAAAAAAAT2E/BaTi5N1rAqg/h300/fig2-small.png" height="w300"
+alt="Architecture of a TI calcuator. From https://www.google.com/patents/US3934233"
+title="Architecture of a TI calcuator. From https://www.google.com/patents/US3934233"></a>
+<a href="https://picasaweb.google.com/106338564628446721517/Calculator?noredirect=1#5892527694784881026"><img class="hilite" src="https://lh3.googleusercontent.com/-G3zKz6CtWEE/UcZ2t-zN4YI/AAAAAAAAT1w/ewzzNvRGR4A/h300-w300-c/US3934233-schematic.png" height="300"
+alt="Very large schematic of a TI calculator chip, assembled by Ken Shirriff from https://www.google.com/patents/US3934233"
+title="Very large schematic of a TI calculator chip, assembled by Ken Shirriff from https://www.google.com/patents/US3934233">
+</a>
 <h4>Algorithms</h4>
 The chip patent includes the full source code for the calculator, implementing addition, subtraction, multiplication, and division.  The chip doesn't support multiplication or division directly so multiplication is performed by repeated addition, and division is performed by repeated subtraction, very similar to grade-school multiplication and long division.
 <p>

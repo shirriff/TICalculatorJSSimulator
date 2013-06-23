@@ -13,11 +13,11 @@ var Keygrid = function(elem, model) {
 
   var context = elem.getContext('2d');
 
-  var BOXSIZE = 30;
-  var XMARGIN = 10;
-  var YMARGIN = 20;
-  var XSPACING = 50;
-  var YSPACING = 45;
+  var BOXSIZE = 26; // Keep this even
+  var XMARGIN = 11;
+  var YMARGIN = 16;
+  var XSPACING = 45;
+  var YSPACING = 40;
 
   this.update = function(fast) {
     model.keyStrobe = 0;
@@ -32,6 +32,7 @@ var Keygrid = function(elem, model) {
     }
     context.save();
     context.transform(1, 0, 0, 1, .5, .5);
+    // Verticals
     for (var col = 0; col < 9; col++) {
       context.strokeStyle = model.d[col] ? '#ccc' : '#f77';
       context.beginPath();
@@ -51,6 +52,7 @@ var Keygrid = function(elem, model) {
       } else {
         context.strokeStyle = '#ccc';
       }
+      // Horizontals
       context.beginPath();
       context.moveTo(0, YMARGIN + BOXSIZE / 2 + YSPACING * row);
       context.lineTo(elem.width, YMARGIN + BOXSIZE / 2 + YSPACING * row);

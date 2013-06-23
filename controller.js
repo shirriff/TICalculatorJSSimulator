@@ -38,9 +38,21 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
 	playButton.show();
 	model.running = 0;
       } else {
-        that.update();
+	if (model.fastStep == 0) {
+	  that.update();
+	} else {
+	  // Don't make user manually step 10 times through one instruction
+	  var address = model.address;
+	  while (model.address == address) {
+	    that.update();
+	    if (model.dActive == 1) {
+	      break;
+	    }
+	  }
+	}
       }
-      });
+    }
+    );
   stopButton.hide();
 
   var updateInt = function() {

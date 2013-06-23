@@ -8,16 +8,16 @@ Based on patent US3934233
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
 <link href='http://fonts.googleapis.com/css?family=Chivo:400' rel='stylesheet' type='text/css'/>
 
-<script src="calcImage.js"></script>
-<script src="controller.js"></script>
-<script src="cpu.js"></script>
-<script src="display.js"></script>
-<script src="instruction.js"></script>
-<script src="keygrid.js"></script>
-<script src="model.js"></script>
-<script src="registers.js"></script>
-<script src="sourceCode.js"></script>
-<script src="sourceWindow.js"></script>
+<script src="http://files.righto.com/calculator/calcImage.js"></script>
+<script src="http://files.righto.com/calculator/controller.js"></script>
+<script src="http://files.righto.com/calculator/cpu.js"></script>
+<script src="http://files.righto.com/calculator/display.js"></script>
+<script src="http://files.righto.com/calculator/instruction.js"></script>
+<script src="http://files.righto.com/calculator/keygrid.js"></script>
+<script src="http://files.righto.com/calculator/model.js"></script>
+<script src="http://files.righto.com/calculator/registers.js"></script>
+<script src="http://files.righto.com/calculator/sourceCode.js"></script>
+<script src="http://files.righto.com/calculator/sourceWindow.js"></script>
 <!-- header styles -->
 <style type="text/css">
   body {
@@ -182,7 +182,7 @@ $(document).ready(function() {
 </body>
 <div id="header-wrapper">
 <div class="header section" id="header"><div class="widget Header" id="Header1">
-<div id="header-inner" style="background-image: url(&quot;https://lh5.googleusercontent.com/-OyFd36t2Doo/T7nMSchO46I/AAAAAAAAKjM/ynuhCCEf_bs/s800/background.jpg&quot;); background-position: right ; min-height: 105px; height: 105px; background-repeat: no-repeat; ">
+<div id="header-inner" style="background-image: url(https://lh5.googleusercontent.com/-OyFd36t2Doo/T7nMSchO46I/AAAAAAAAKjM/ynuhCCEf_bs/s800/background.jpg); background-position: right ; min-height: 105px; height: 105px; background-repeat: no-repeat; ">
 <div class="titlewrapper" style="background: transparent">
 <h1 class="title" style="background: transparent; border-width: 0px">
 Ken Shirriff's blog
@@ -204,13 +204,13 @@ Ken Shirriff's blog
   The source code window shows the code that is being executed. Underneath, the display and keyboard matrix show how the one column of the display and keyboard gets scanned each operation. The register display at the bottom shows the digit scan register, the 11-digit A, B, and C registers, the 11-bit A flag and B flag registers, the current mask and constant value, the current 11-bit op code, and the condition code.
   <p>
 <div id="calcImageDiv">
-  <img id="calcImage" src="TI_DataMath_2500.jpg" width=220 height=400></img>
+  <img id="calcImage" src="http://files.righto.com/calculator/TI_DataMath_2500.jpg" width=220 height=400></img>
   <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
 </div>
 <div style="margin-left: 240px; ">
-  <button id="playButton" title="run" style="background:url(http://files.righto.com/images/play.png) no-repeat 2px 2px;"></button>
-  <button id="stopButton" title="stop" style="background:url(http://files.righto.com/images/stop.png) no-repeat 2px 2px;"></button>
-  <button id="stepButton" title="step" style="background:url(http://files.righto.com/images/step.png) no-repeat 2px 2px;"></button>
+  <button id="playButton" title="run" style="background:url(http://files.righto.com/calculator/play.png) no-repeat 2px 2px;"></button>
+  <button id="stopButton" title="stop" style="background:url(http://files.righto.com/calculator/stop.png) no-repeat 2px 2px;"></button>
+  <button id="stepButton" title="step" style="background:url(http://files.righto.com/calculator/step.png) no-repeat 2px 2px;"></button>
   <br/>
   <div id="sourceWindowContainer"><div id="sourceWindow"></div></div>
   <div id="instruction"></div>
@@ -326,7 +326,11 @@ The processor for this calculator has many unusual architectural features. It's 
 <p>
 The three registers (A, B, and C) hold eleven decimal digits, and the arithmetic takes place in decimal. The chip supports multi-digit decimal addition and subtraction, but not multiplcation or division.
 <p>
-Each instruction is an 11 bit opcode, which comes from a ROM that has 320 11-bit words. An eleven bit instruction set seems very unusual, but it allows all instructions to fit into a single word. The first two bits are the "class", selecting the type of instruction. The next 5 bits select the specific instruction. The final five bits select the mask and constant.
+Each instruction is an 11 bit opcode, which comes from a ROM that has 320 11-bit words. An eleven bit instruction set seems very unusual, but it allows all instructions to fit into a single word. The first two bits are the "class", selecting the type of instruction. The next 5 bits select the specific instruction. The final five bits select the mask and constant. The following drawing from <a href="https://www.google.com/patents/US3934233">the patent</a> shows the structure:
+<p>
+<a href="https://www.google.com/patents/US3934233">
+<img class="hilite" src="https://lh4.googleusercontent.com/-lUdHoHanHTE/UcZxYHi1BAI/AAAAAAAAT1E/KXurwlCpPjc/s400/opcodes.png" width="400" alt="Opcode structure for a TI calculator. From https://www.google.com/patents/US3934233" title="Opcode structure for a TI calculator. From https://www.google.com/patents/US3934233">
+</a>
 <p>
 One of the most unusual features of this processor is that operations have a mask that selects which digits are affected. For instance, when adding the A and B registers, a single digit can be added, all 11 digits can be added, or the two highest digits can be added. Likewise, an operation can act on a single flag, the three lowest flags, or other combinations. In total, there are 16 different masks. This gives the processor a lot of flexibility, and allows a single operation to process multiple digits without requiring a loop.
 <p>

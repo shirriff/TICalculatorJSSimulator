@@ -1,3 +1,9 @@
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file implements the calculator 7-segment display.
+
 var Display = function(elem, model) {
   // 000
   // 1 2

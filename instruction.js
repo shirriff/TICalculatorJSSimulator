@@ -1,4 +1,9 @@
-// instruction info
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file shows information on the currently-executing instruction.
+
 var Instruction = function(elem, model) {
 
   var flagops = [

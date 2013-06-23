@@ -1,4 +1,9 @@
-// Display of registers
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file updates the display of the CPU registers.
+
 var Registers = function(elem, model) {
 
   this.update = function() {

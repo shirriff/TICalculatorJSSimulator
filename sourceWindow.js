@@ -1,4 +1,9 @@
-// Source window
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file displays the source code in the source window.
+
 var SourceWindow = function(elem, model, sourceCode) {
   var height = 336 / 12; // height in lines
   var top = 0;

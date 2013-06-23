@@ -1,4 +1,9 @@
-// Clickable image of the calculator
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file implements the clickable image of the calculator.
+
 var CalcImage = function(elem, model) {
   this.model = model;
   // Initialize the positions of the keys in the image

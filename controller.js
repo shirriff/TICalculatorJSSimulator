@@ -1,4 +1,9 @@
-// Controller
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file is the controller, which connects together all the pieces.
+
 var Controller = function(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
     registers, instruction, playButton, stopButton, stepButton) {
   this.calcImage = calcImage;

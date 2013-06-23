@@ -167,7 +167,15 @@ def asm():
             else:
                 print 'BAD OP', opcode
     out = open('sourceCode.js', 'w')
-    print >>out, 'var sourceCode = ['
+    print >>out, """// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+// Code transcribed by Phil Mainwaring
+//
+// This file holds the source and object code to be executed.
+
+var sourceCode = ['
+"""
     for i in range(0, iAddr + 1):
         print >>out, sourceCode[i]
     print >>out, '];'

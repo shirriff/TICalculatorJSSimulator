@@ -1,4 +1,12 @@
-var sourceCode = [
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+// Code transcribed by Phil Mainwaring
+//
+// This file holds the source and object code to be executed.
+
+var sourceCode = ['
+
 '.CLEAR   ZFA    ALL    ; power on, clear flags',
 '         ZFB    ALL   ',
 '         AKA    ALL    ; clear A and C',

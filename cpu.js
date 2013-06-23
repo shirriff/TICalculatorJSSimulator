@@ -1,4 +1,8 @@
-// The CPU simulator
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file simulates the CPU chip
 var Cpu = function(model) {
   this.model = model;
 

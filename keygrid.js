@@ -1,4 +1,10 @@
-// Keyboard grid
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file implements the keyboard grid, showing the currently-pressed key, the live grid wires,
+// and updates the strobe value in the model.
+
 var Keygrid = function(elem, model) {
   this.keys = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', ''],

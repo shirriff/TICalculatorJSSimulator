@@ -1,4 +1,9 @@
-// Data model
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// This file is the data model, holding the state information
+
 var Model = function(objectCode) {
   this.rom = objectCode;
   // Important: Array order matches display order, not bit order.

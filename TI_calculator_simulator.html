@@ -344,6 +344,7 @@ Ken Shirriff's blog
 The source code window shows the code that is being executed. Underneath, the display and keyboard matrix show how the one column of the display and keyboard gets scanned each operation. The register display at the bottom shows the digit scan register, the 11-digit A, B, and C registers, the 11-bit A flag and B flag registers, the current mask and constant value, the current 11-bit op code, and the condition code.
 <p>
 <h4>Architecture</h4>
+The processor simulated here is similar to the <a href="http://datamath.org/Chips/TMS0803.htm">TMS0800</a> series used in the <a href="http://datamath.org/BASIC/TI-1000/TI-1500.htm">TI-1500</a> calculator.
 The processor for this calculator has many unusual architectural features. It's interesting to examine this chip and discover how many CPU features that we take for granted can actually be done very differently.
 <p>
 The three registers (A, B, and C) hold eleven decimal digits, and the arithmetic takes place in decimal. The chip supports multi-digit decimal addition and subtraction, but not multiplcation or division.

@@ -9,7 +9,7 @@ var Registers = function(elem, model) {
   this.update = function() {
     function updateOne(contents, name) {
       for (var i = 0; i <= 10; i++) {
-	$("#registers-" + name + (10 - i)).text(contents[i]);
+	$("#registers-" + name + (10 - i))[0].textContent = contents[i];
       }
     }
 

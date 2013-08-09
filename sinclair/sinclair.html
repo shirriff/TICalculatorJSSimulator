@@ -1,0 +1,203 @@
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style type="text/css">
+body {
+  background-color: #ccc;
+}
+div {
+//font-size: 15px;
+}
+</style>
+<script type="text/javascript">
+
+function lg(x0,s){
+return;
+ var h = document.getElementById("d");
+ var d = 1000.
+ var c = Math.log(1 + 1/d)/Math.log(10)
+ 
+ var   t = 0
+ var   x = Math.floor(x0 * 100000)
+    while (x > 100000){
+        x = x - x / 1000
+        t += 1
+ }
+ var r = t * c;
+ h.innerHTML += '<br>'+x0+' '+r+' '+s;
+}
+
+var d = 10000.
+var c = Math.floor(1/(Math.log(1 + 1/d) / Math.log(10)))
+//22892-22988 want 23027   floor=23483 rnd=23033
+c=23033;
+
+
+function antilog(x) {
+ var exp = Math.floor(x);
+ var frac = x - exp;
+ var count = Math.floor((1.-frac) * 23033);
+ var result = 1000000;
+ if (count == 0){
+  result = 0;
+ }
+ while (count > 0) {
+  count = count - 1;
+  result = result - Math.floor(result / 10000 + .5);
+ }
+ for (var i=0; i<exp; i++){
+  result *= 10;
+ }
+ return result / 100000.;
+}
+ 
+function alg(t0,s){
+ h.innerHTML += '<br>'+t0+' sim: ' + antilog(t0) + ' sinclair:'+s;
+}
+
+function alg0(t0, s) {
+ var exp=Math.floor(t0);
+ var t1=t0-exp;
+
+
+ var   t = Math.floor((1.-t1) * c)
+var count=t;
+    x = 1000000
+ if(t1==0) {
+   t = 0;
+   x = 100000;
+} else if (t==0){
+ x=0;
+ }
+    while (t > 0){
+        t -= 1
+        x = x - Math.floor(x / 10000+.5)
+ }
+
+for (var i=0;i<exp;i++){
+  x*=10;
+ }
+ var r= x / 100000.;
+ h.innerHTML += '<br>'+t0+' count:'+count+' got:'+r+' sinclair:'+s;
+}
+
+function algt(t0,s){
+ var exp=Math.floor(t0);
+ var t1=t0-exp;
+
+
+ var   t = Math.floor((1.-t1) * c)
+
+var count=t;
+    x = 1000000
+    for (var i=0;i<30000;i++) {
+        t -= 1
+        x = x - Math.floor(x / 10000+.5)
+        if(x==100009)break;
+ }
+ var r= x / 100000. * Math.pow(10, t1);
+ h.innerHTML += '<br>'+t0+' count:'+i+' got:'+r+' sinclair:'+s;
+}
+
+function run(){
+ lg(1.00054, '2.3000 E-4');
+ lg(1.00055, '2.4000 E-4');
+ lg(1.00056, '2.4000 E-4');
+ lg(1.00057, '2.4000 E-4');
+ lg(1.00058, '2.5000 E-4');
+ alg(1, ' 1.0000E1');
+ alg(0.1, ' 1.25894E0');
+ alg(0.01, ' 1.0234E0');
+ alg(0.001, ' 1.00238E0');
+ alg(0.0001, ' 1.00029E0');
+ alg(0.00001, ' 1.00009E0');
+
+ lg(1.1, '4.1400E-2');
+ lg(1.01, '4.3600E-3');
+ lg(1.001, '4.3000E-4');
+ lg(1.0001, '4.0000E-5');
+ lg(.9, '1.0000E00');
+ lg(.99, '1.0000E00');
+ lg(.999, '1.0000E00');
+ lg(.9999, '1.0000E00');
+ lg(1.100000, 0.041393);
+ lg(1.110000, 0.045323);
+ lg(1.120000, 0.049218);
+ lg(1.130000, 0.053078);
+ lg(1.140000, 0.056905);
+ lg(1.150000, 0.060698);
+ lg(1.160000, 0.064458);
+ lg(1.170000, 0.068186);
+ lg(1.180000, 0.071882);
+ lg(1.190000, 0.075547);
+ lg(1.200000, 0.079181);
+ lg(1.900000, 0.278754);
+
+ alg(0.100000, 1.258925);
+ alg(0.110000, 1.288250);
+ alg(0.120000, 1.318257);
+ alg(0.130000, 1.348963);
+ alg(0.140000, 1.380384);
+ alg(0.150000, 1.412538);
+ alg(0.160000, 1.445440);
+ alg(0.170000, 1.479108);
+ alg(0.180000, 1.513561);
+ alg(0.190000, 1.548817);
+ alg(0.200000, 1.584893);
+ alg(0.900000, 7.943282);
+
+ alg(1, '1.0000E1');
+ alg(0.1, ' 1.25894E0');
+ alg(0.01, ' 1.0234E0');
+ alg(0.001, ' 1.00238E0');
+ alg(0.0001, ' 1.00029E0');
+ alg(0.00001, ' 1.00009E0');
+ alg(1.00082, '1.00199 E1');
+ alg(1.00083, '1.00209 E1');
+ alg(1.00084, '1.00209 E1');
+ alg(1.00085, '1.00209 E1');
+ alg(1.00086, '1.00209 E1');
+ alg(1.00087, '1.00209 E1');
+ alg(1.00088, '1.00218 E1');
+
+ alg(1.99990, '9.99800 E1');
+ alg(1.99991, '9.99800 E1');
+ alg(1.99992, '9.99900 E1');
+ alg(1.99993, '9.99900 E1');
+ alg(1.99994, '9.99900 E1');
+ alg(1.99995, '9.99900 E1');
+ alg(1.99996, '0');
+ alg(1.99999, '0');
+}
+
+function breaks(){
+ for (var i = 22500;i<23500;i++){
+  function ok(v){
+    return Math.floor(i*v-.05) != Math.floor(i*(v+.00001)-.05);
+  }
+  if (!ok(.99995)) continue;
+  if (!ok(.99991)) continue;
+  if (!ok(.00082)) continue;
+  if (!ok(.00087)) continue;
+  h.innerHTML += '<br>'+i;
+ }
+}
+
+function load(){
+h = document.getElementById("d");
+h.innerHTML += '<br>c='+c;
+try {
+ run();
+} catch (e){
+alert(e);
+}
+}
+</script>
+<body onload="load();">
+<br/>
+Sim:
+<div id=d ></div>
+
+
+
+
+

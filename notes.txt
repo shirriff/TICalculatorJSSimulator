@@ -1,2 +1,0 @@
-Image: http://commons.wikimedia.org/wiki/File:TI_DataMath_2500.jpg
-Source: phils.bitboxes.co.uk/sinclair_calculator/calculator_source_edit_6.asm

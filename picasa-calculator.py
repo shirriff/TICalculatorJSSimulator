@@ -58,7 +58,7 @@ def cleanup():
 
 gd_client = gdata.photos.service.PhotosService()
 username = 'ken.shirriff@gmail.com'
-password = "gsbkxsveoztzjbiq" or getpass.getpass('password: ')
+password = "Why does my password keep ending up in github?" or getpass.getpass('password: ')
 gd_client.ClientLogin(username, password)
 
 albums = gd_client.GetUserFeed()

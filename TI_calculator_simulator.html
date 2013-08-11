@@ -8,22 +8,21 @@ Based on patent US3934233
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
 <link href='http://fonts.googleapis.com/css?family=Chivo:400' rel='stylesheet' type='text/css'/>
 
-<script src="http://files.righto.com/calculator/calcImage.js"></script>
-<script src="http://files.righto.com/calculator/controller.js"></script>
-<script src="http://files.righto.com/calculator/cpu.js"></script>
-<script src="http://files.righto.com/calculator/display.js"></script>
-<script src="http://files.righto.com/calculator/instruction.js"></script>
-<script src="http://files.righto.com/calculator/keygrid.js"></script>
+<script src="calcImage.js"></script>
+<script src="controller.js"></script>
+<script src="cpu.js"></script>
+<script src="display.js"></script>
+<script src="instruction.js"></script>
 <script src="keygrid.js"></script>
-<script src="http://files.righto.com/calculator/model.js"></script>
-<script src="http://files.righto.com/calculator/registers.js"></script>
-<script src="http://files.righto.com/calculator/sourceCode.js"></script>
-<script src="http://files.righto.com/calculator/sourceWindow.js"></script>
+<script src="keygrid.js"></script>
+<script src="model.js"></script>
+<script src="registers.js"></script>
+<script src="sourceCode.js"></script>
+<script src="sourceWindow.js"></script>
 <!-- header styles -->
 <style type="text/css">
   body {
     font-family: arial;
-    font-size: small;
     margin: 0;
   }
 
@@ -202,10 +201,10 @@ $(document).ready(function() {
 </script>
 </head>
 </body>
-<div id="header-wrapper">
+<div id="header-wrapper" style="font-size:small">
 <div class="header section" id="header"><div class="widget Header" id="Header1">
 <div id="header-inner" style="background-image: url(https://lh5.googleusercontent.com/-OyFd36t2Doo/T7nMSchO46I/AAAAAAAAKjM/ynuhCCEf_bs/s800/background.jpg); background-position: right ; min-height: 105px; height: 105px; background-repeat: no-repeat; ">
-<div class="titlewrapper" style="background: transparent">
+<div class="titlewrapper" style="background: transparent" onclick="window.location='http://righto.com'">
 <h1 class="title" style="background: transparent; border-width: 0px">
 Ken Shirriff's blog
 </h1>
@@ -218,10 +217,12 @@ Ken Shirriff's blog
 </div>
 
 <div class="content">
-  <h3>Simulating a TI calculator with crazy 11-bit opcodes (alpha, still under development)</h3>
-  This is a simulator of a simple Texas Instruments calculator. This page simulates the CPU and registers, and actually runs the calculator's code.
+  <h3>Simulating a TI calculator with crazy 11-bit opcodes</h3>
+  This realistic simulator of a 4-function Texas Instruments calculator from 1974 runs the calculator's source code instruction by instruction by simulating the processor. The unusual processor has 11-bit opcodes, 44-bit BCD registers, and a 9-bit address bus.
   <p>
-  Click keys on the calculator image. Wait a few seconds for each key to be processed or your keys will get ignored. You can stop or single-step the simulator using the buttons on the right.
+  To use the simulator, <i>slowly</i> click keys on the calculator image and
+  you can watch how the calculator performs operations step by step. Since the processor doesn't do multiplication or division, it does these operations by repeated addition or subtraction. 
+  Try 2 ÷ 3 = for example.
   <p>
 <div id="calcImageDiv">
   <img id="calcImage" src="http://files.righto.com/calculator/TI_DataMath_2500.jpg" width=220 height=400></img>
@@ -340,34 +341,43 @@ Ken Shirriff's blog
     <td colspan=4 id="registers-cc"></td>
   </tr>
 </table>
+<h4>The simulator</h4>
+The simulator simulates the calculator at the register and instruction level, showing what the hardware really does.
+The register table at the bottom shows the digit scan register D, the 11-digit A, B, and C registers, the 11-bit flag registers AF and BF, the current mask and constant (K) value, the 11-bit instruction being executed, and the condition code.
+Above that, the display and keyboard matrix show how the hardware is organized and how one column of the display and keyboard gets scanned each operation.
+The source code window shows the code that is being executed. The A register hold the value that is displayed, and the B register controls the decimal point position.
 <p>
-The source code window shows the code that is being executed. Underneath, the display and keyboard matrix show how the one column of the display and keyboard gets scanned each operation. The register display at the bottom shows the digit scan register, the 11-digit A, B, and C registers, the 11-bit A flag and B flag registers, the current mask and constant value, the current 11-bit op code, and the condition code.
+The simulator is implemented in JavaScript. I haven't optimized it for performance, since it's interesting to see the instructions as they execute.
+You can use the single-step button above the source window to see what's happening in more detail.
+For comparison, the real processor runs at about 4000 instructions per second.
 <p>
 <h4>Architecture</h4>
-The processor simulated here is similar to the <a href="http://datamath.org/Chips/TMS0803.htm">TMS0800</a> series used in the <a href="http://datamath.org/BASIC/TI-1000/TI-1500.htm">TI-1500</a> calculator.
-The processor for this calculator has many unusual architectural features. It's interesting to examine this chip and discover how many CPU features that we take for granted can actually be done very differently.
+The <a href="http://datamath.org/Chips/TMS0803.htm">TMS0800</a> series calculator chip was used in the <a href="http://datamath.org/BASIC/TI-1000/TI-1500.htm">TI-1500</a> calculator, Sinclair Scientific, and other calculators of the mid 1970s.
+This processor has many unusual architectural features. It's interesting to examine this chip and discover how many CPU features that we take for granted can actually be done very differently.
 <p>
-The three registers (A, B, and C) hold eleven decimal digits, and the arithmetic takes place in decimal. The chip supports multi-digit decimal addition and subtraction, but not multiplcation or division.
+The three registers (A, B, and C) hold eleven decimal digits as BCD, and the arithmetic takes place in decimal, digit by digit. The chip supports multi-digit decimal addition and subtraction, but not multiplication or division.
 <p>
-Each instruction is an 11 bit opcode, which comes from a ROM that has 320 11-bit words. An eleven bit instruction set seems very unusual, but it allows all instructions to fit into a single word. The first two bits are the "class", selecting the type of instruction. The next 5 bits select the specific instruction. The final five bits select the mask and constant. The following drawing from <a href="https://www.google.com/patents/US3934233">the patent</a> shows the structure:
+Each instruction is an 11 bit opcode, which comes from a ROM that has 320 11-bit words. The entire calculator software had to fit in this tiny ROM. An eleven bit instruction set seems very unusual, but it allows all instructions to fit into a single 11-bit word, avoiding multi-byte instructions. The first two bits of an instruction are the "class", selecting the type of instruction (arithmetic, flag, or branch). The next 5 bits select the specific instruction opcode. The final five bits select the mask and constant. The following drawing from <a href="https://www.google.com/patents/US3934233">the patent</a> shows the structure:
 <p>
 <a href="https://www.google.com/patents/US3934233">
 <img class="hilite" src="https://lh4.googleusercontent.com/-lUdHoHanHTE/UcZxYHi1BAI/AAAAAAAAT1E/KXurwlCpPjc/s400/opcodes.png" width="400" alt="Opcode structure for a TI calculator. From https://www.google.com/patents/US3934233" title="Opcode structure for a TI calculator. From https://www.google.com/patents/US3934233">
 </a>
 <p>
-One of the most unusual features of this processor is that operations have a mask that selects which digits are affected. For instance, when adding the A and B registers, a single digit can be added, all 11 digits can be added, or the two highest digits can be added. Likewise, an operation can act on a single flag, the three lowest flags, or other combinations. In total, there are 16 different masks. This gives the processor a lot of flexibility, and allows a single operation to process multiple digits without requiring a loop.
+The instructions are fairly basic, such as <code>AABA</code>, which adds A and B storing to A, or <code>SRLA</code>, which shifts register A left by one digit. If you single-step using the control above the source window, each instruction is explained in more detail.
 <p>
-The mask bits also select a constant value associated with a mask. For instance, the lowest digit can be incremented by 7 or the second digit can be incremented by 4, or 0 can be stored into all the digits. Most processors use a second instruction word to specify constant values, but the TI processor folds the constants into the single instruction.  The full list of masks and constants is <a href="https://patentimages.storage.googleapis.com/pages/US3934233-33.png">here</a>.
+One of the most unusual features of this processor is that operations have a mask that selects which digits are affected. For instance, when adding the A and B registers, a single digit can be added, all 11 digits can be added, or the two highest digits can be added depending on the mask specified in the instruction. Likewise, an operation can act on a single flag, the three lowest flags, or other combinations. In total, there are 16 different masks. This gives the processor a lot of flexibility, and allows a single operation to process multiple digits without coding a loop - the hardware does the loop internally.
 <p>
-The two 11-bit flag registers AF and BF are a very important part of the processor with almost half of the instructions operating on the flags. The set, clear, test, compare, and exchange operations are also controlled by the mask, so they can operate on a single bit or multiple bits at a time. Boolean operations are notably missing.
+The mask bits also select a constant value associated with a mask. For instance, the lowest digit can be incremented by 7 or the second digit can be incremented by 4, or 0 can be stored into all the digits, depending on the mask in the instruction. Most processors use a second instruction word to specify constant values, but the TI processor folds the constants into the single instruction.  The full list of masks and constants is <a href="https://patentimages.storage.googleapis.com/pages/US3934233-33.png">here</a>.
+<p>
+The two 11-bit flag registers AF and BF are a very important part of the processor, as they are used to keep track of the calculator's state. For instance, the calculator remembers which operation key was pressed by using a few flag bits. The set, clear, test, compare, and exchange operations are also controlled by the mask, so they can operate on a single bit or multiple bits at a time. Boolean operations are notably missing.
 <p>
 One feature of the chip specially designed for calculators is the digit scan register, which cycles through 10 scan lines. These lines illuminate one digit at a time. They also scan the key matrix to detect key presses. Several of the instructions are tied closely to the digit scan. For instance, <code>AKCN</code> increments A each scan until a key is found. Since keys 1 through 9 and tied to scan lines 1 through 9, the result is the desired digit value. Similarly <code>SYNC</code> synchronizes execution to the scan.
 <p>
-The chip has a single condition bit. Depending on the instruction, this holds the status for key down, carry, borrow, equality, or zero. Most processors use multiple condition flags, but here there's a single flag and the programmer needs to keep track of what it holds. The condition flag is used to control conditional branches. There is no unconditional branch - the BET (branch every time) instruction is just a condition branch when the programmer knows the condition flag is clear. The top two class bits indicate a conditional branch, leaving 9 bits for the address. Thus, conditional branches fit in a single word, unlike most processors.
+The chip has a single condition bit. Depending on the instruction, this holds the status for key down, carry, borrow, equality, or zero. Most processors use separate condition flags for each type of condition. In contrast, t 0800 has a single flag and the programmer needs to keep track of what it holds. The condition flag is used to control conditional branches. There is no unconditional branch - the BET (branch every time) instruction is just a condition branch when the programmer knows the condition flag is clear. The top two class bits indicate a conditional branch, leaving 9 bits for the address. Thus, branch instructions fit in a single word, unlike most processors.
 <p>
-There's not always space for the whole address, though.  The <code>WAITNO</code> and <code>WAITDK</code> instructions branch when a key is pressed. The bizarre thing about these instructions is that the opcode takes up most of the address bits, so there is little choice about where the branch ends up. The destination instruction is forced to go in a small area, even if that's in the middle of an unrelated block of code.
+A few instructions don't have room for an opcode and branch address, so they use the same bits for both, which is very strange. The <code>WAITNO</code> and <code>WAITDK</code> instructions branch when a key is pressed. The bizarre thing about these instructions is that the opcode takes up most of the address bits, so there is little choice about where the branch ends up. The destination instruction is forced to go in a small area, even if that's in the middle of an unrelated block of code.
 <p>
-If you want to know more about the chip, the architecture diagram and schematic are extremely detailed.
+If you want to know more about the chip, the architecture diagram from the patent and the chip schematic links below are extremely detailed. I tediously assembled the schematic from many pieces in the patent.
 <p>
 <a href="https://www.google.com/patents/US3934233"><img class="hilite" src="https://lh5.googleusercontent.com/-9arWpZn1KEA/UcZ3tMdSf8I/AAAAAAAAT2E/BaTi5N1rAqg/h300/fig2-small.png" height="w300"
 alt="Architecture of a TI calcuator. From https://www.google.com/patents/US3934233"
@@ -381,8 +391,9 @@ The chip patent includes the full source code for the calculator, implementing a
 <p>
 During computation, numbers are represented as a sign flag, a 9-digit mantissa, and a 2 digit exponent. The exponent indicates how many digits are after the decimal point. e.g. 1.23 has a mantissa of 123 and an exponent of 2. Numbers are shifted left and aligned during computation so 1.23 can also be represented mantissa 12300000 and exponent 7. You can see the numbers getting shifted left and right during computation.
 <p>
-For display, the A register holds the sign (represented by the number 14) and the displayed digits. The B register indicates the position of the decimal point by having the digit 2 at the decimal point position. This may seem bizarre, but it simplifies the display hardware.
+For display, the A register holds the sign (represented by the number 14) and the displayed digits. The B register indicates the position of the decimal point by having the digit 2 at the decimal point position. A minus sign is indicated by the digit value 14 in A at the proper position. Leading zeros are suppressed by the hardware, so for instance it displays 12, not 000000012.
 <p>
+I've added extensive comments to the source code.
 As an outline of the code, it starts with <code>CLEAR</code>, which resets everything. The <code>LOCK</code> loop waits for keys to get released, and then <code>IDLE</code> waits for a key press. <code>KEY</code> waits a bit to debounce the key and then scans for a non-digit key. Then it counts the scans to get the value of any digit key. A digit is appended to A and then <code>DPTPOS</code> sets B to display the decimal point correctly.
 <p>
 To perform addition or subtraction, the two arguments are aligned along their decimal points, added or subtracted, and the sign set appropriately. Multiplication is done by repeatedly adding, multiplying by 10, and continuing through all the digits. Division is done by repeatedly subtracting, multiplying by 10, and continuing through all the digits. After the operation, the <code>POST</code> code normalizes the result and handles any overflow.
@@ -390,8 +401,11 @@ To perform addition or subtraction, the two arguments are aligned along their de
 Additional code handles constant operations, a more advanced feature than you'd expect to find in a simple calculator. E.g. if you enter "3 * 6 = ", followed by "9 =", the calculator remembers the previous "* 6" operation and computes "9 * 6". (Sort of <a href="http://en.wikipedia.org/wiki/Currying">currying</a>.) The constant mantissa is stored in C, the exponent is stored in B, and the operation is stored in the AF flags. Likewise, "5 * = = " computes 5 cubed.
 <p>
 It's interesting to watch the digits bounce back and forth, even for simple computations. There's a lot more happening in a calculator and more programming involved than you might think.
-<h4>Credits</h4>
-This simulator is based on the extremely detailed 50 page <a href="https://www.google.com/patents/US3934233">patent</a>, which is one of the most informative patents I've seen.  <p style="padding-bottom: 15px;">
+<p>
+The simulator will lock up in a few cases, such as overflow. I think these bugs are in the source code, not the simulator. The source code from the patent is slightly different from the code that was shipped in real calculators, so some bugs may have been fixed.
+<h4>Notes and credits</h4>
+This simulator is based on the extremely detailed 50 page patent (<a href="https://www.google.com/patents/US3934233">3934233</a>),  which is one of the most informative patents I've seen. I wish all patents were like this one: the text seems to have been written by engineers who wanted to explain everything, and the patent includes the full schematic and source code. Ironically, the patent itself is very narrow, claiming an obscure detail of the ROM decoding that could have been written up in about 2 pages.
+<p>
 Source code entered by Phil Mainwaring. Calculator <a href="http://commons.wikimedia.org/wiki/File:TI_DataMath_2500.jpg">image</a> from <a href="//de.wikipedia.org/wiki/Ralf_Pfeifer" title="de:Ralf Pfeifer">Ralf Pfeifer</a> at <a href="http://de.wikipedia.org">de.wikipedia</a>. Built using <a href="http://jquery.com/">jQuery</a> and tested with <a href="http://qunitjs.com/">QUnit</a>. Inspired by <a href="http://visual6502.org/">Visual 6502</a>.
 </div>
 </html>

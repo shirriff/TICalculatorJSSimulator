@@ -4,8 +4,9 @@
 //
 // This file is the data model, holding the state information
 
-var Model = function(objectCode) {
+var Model = function(objectCode, sinclair) {
   this.rom = objectCode;
+  this.sinclair = sinclair;
   // Important: Array order matches display order, not bit order.
   // I.e. a[0] is high-order digit S10, a[10] is low-order digit S0.
   this.a = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Register A

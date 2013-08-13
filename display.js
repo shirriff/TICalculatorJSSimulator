@@ -28,8 +28,9 @@ var Display = function(elem, model, sinclair) {
 
   this.update = function(singleDigit) {
     if (sinclair) {
-      str = '' + model.a[0] + model.a[4] + model.a[5] + model.a[6] + model.a[7] + model.a[8] +
-	model.a[1] + model.a[2] + model.a[3];
+      str = (model.a[0] == 0 ? ' ' : '-') +
+        model.a[4] + model.a[5] + model.a[6] + model.a[7] + model.a[8] +
+	(model.a[1] == 0 ? ' ' : '-') + model.a[2] + model.a[3];
       dpt = 1;
     } else {
       var str = "";

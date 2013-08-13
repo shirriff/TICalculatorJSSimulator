@@ -190,7 +190,7 @@ Based on patent US3934233 and visual 6502 reverse engineering
 <script>
 
 $(document).ready(function() {
-  var model = new Model(objectCode);
+  var model = new Model(objectCode, 1 /* sinclair */);
   var keys = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', ''],
     ['C', '\u25bc' /* down */, '+', '-', '\u00f7' /* div */, '\u00d7' /* mult */, '\u25b2' /* up */, 'E', '0', ''],

@@ -78,8 +78,14 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
 
   this.update = function() {
     // Hack to detect idle loop. Release any pressed key.
-    if (model.address == 0x22) {
-      model.keyPressed = '';
+    if (model.sinclair) {
+      if (model.address == 0x6) {
+	model.keyPressed = '';
+      }
+    } else {
+      if (model.address == 0x22) {
+	model.keyPressed = '';
+      }
     }
     if (model.rom[model.address] >> 4 == 0x52 && model.keyPressed == '') { // WAITNO
       model.idle = 1;

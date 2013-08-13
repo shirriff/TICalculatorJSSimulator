@@ -199,7 +199,7 @@ $(document).ready(function() {
   var keygrid = new Keygrid($("#keygrid")[0], model, keys);
   var registers = new Registers($("#registers")[0], model);
   var display = new Display($("#display"), model);
-  var display2 = new Display($("#calcDisplay"), model);
+  var display2 = new Display($("#calcDisplay"), model, 1 /* sinclair */);
   var sourceWindow = new SourceWindow($("#sourceWindow"), model, sourceCode);
   var cpu = new Cpu(model, masks, 1 /* sinclair */);
   var instruction = new Instruction($("#instruction"), model);
@@ -243,7 +243,7 @@ Ken Shirriff's blog
   <h3>Reverse-engineering and simulating the Sinclair Scientific calculator</h3>
   <p>
 <div id="calcImageDiv">
-  <img id="calcImage" src="http://files.righto.com/calculator/TI_DataMath_2500.jpg" width=220 height=400></img>
+  <img id="calcImage" src="sinclair_placeholder.jpg" width=220 height=400></img>
   <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
 </div>
 <div style="margin-left: 240px; ">

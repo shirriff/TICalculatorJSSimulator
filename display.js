@@ -4,7 +4,8 @@
 //
 // This file implements the calculator 7-segment display.
 
-var Display = function(elem, model) {
+// sinclair = 1 for Sinclair Scientific permuted display
+var Display = function(elem, model, sinclair) {
   // 000
   // 1 2
   // 333
@@ -26,25 +27,31 @@ var Display = function(elem, model) {
   }
 
   this.update = function(singleDigit) {
-    var str = "";
-    var dpt = -1;
-    var zeroSuppress = 1;
-    for (var i = 0; i < 9; i++) {
-      if (i == 8 || model.a[i] != 0) {
-	zeroSuppress = 0;
-      }
-      if (model.a[i] == 0 && zeroSuppress) {
-	str += ' ';
-      } else if (model.a[i] == 14) {
-        str += '-';
-      } else {
-        str += model.a[i];
-      }
-      if (model.b[i] == 2) {
-	dpt = i;
-      }
-      if (model.b[i+1] == 2) {
-	zeroSuppress = 0;
+    if (sinclair) {
+      str = '' + model.a[0] + model.a[4] + model.a[5] + model.a[6] + model.a[7] + model.a[8] +
+	model.a[1] + model.a[2] + model.a[3];
+      dpt = 1;
+    } else {
+      var str = "";
+      var dpt = -1;
+      var zeroSuppress = 1;
+      for (var i = 0; i < 9; i++) {
+	if (i == 8 || model.a[i] != 0) {
+	  zeroSuppress = 0;
+	}
+	if (model.a[i] == 0 && zeroSuppress) {
+	  str += ' ';
+	} else if (model.a[i] == 14) {
+	  str += '-';
+	} else {
+	  str += model.a[i];
+	}
+	if (model.b[i] == 2) {
+	  dpt = i;
+	}
+	if (model.b[i+1] == 2) {
+	  zeroSuppress = 0;
+	}
       }
     }
     this.write(str, dpt);

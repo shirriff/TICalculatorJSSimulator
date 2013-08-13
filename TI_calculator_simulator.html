@@ -191,12 +191,35 @@ Based on patent US3934233
 
 $(document).ready(function() {
   var model = new Model(objectCode);
-  var calcImage = new CalcImage($("#calcImage"), model);
   var keys = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', ''],
     ['C', '=', '+', '-', '*', '/', 'CE', '.', '0', 'D'],
     ['', '', '', '', '', '', '', '', '', '']];
+  // Initialize the positions of the keys in the image
+  var xvals = [[45, 92], [108, 154], [171, 217], [233, 280]];
+  var xbotvals = [[45, 125], [139, 187], [202, 280]];
+  var yvals = [[254, 303], [316, 365], [379, 427], [441, 490], [503, 552]];
+  var keypos = {
+    'CE': [xvals[0], yvals[0]],
+    '/': [xvals[1], yvals[0]],
+    '*': [xvals[2], yvals[0]],
+    '7': [xvals[0], yvals[1]],
+    '8': [xvals[1], yvals[1]],
+    '9': [xvals[2], yvals[1]],
+    'C': [xvals[3], yvals[1]],
+    '4': [xvals[0], yvals[2]],
+    '5': [xvals[1], yvals[2]],
+    '6': [xvals[2], yvals[2]],
+    '-': [xvals[3], yvals[2]],
+    '1': [xvals[0], yvals[3]],
+    '2': [xvals[1], yvals[3]],
+    '3': [xvals[2], yvals[3]],
+    '+': [xvals[3], yvals[3]],
+    '0': [xbotvals[0], yvals[4]],
+    '.': [xbotvals[1], yvals[4]],
+    '=': [xbotvals[2], yvals[4]]};
   var keygrid = new Keygrid($("#keygrid")[0], model, keys);
+  var calcImage = new CalcImage($("#calcImage"), model, keypos);
   var registers = new Registers($("#registers")[0], model);
   var display = new Display($("#display"), model);
   var display2 = new Display($("#calcDisplay"), model);

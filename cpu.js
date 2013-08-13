@@ -56,8 +56,12 @@ var Cpu = function(model, masks, sinclair) {
 	case 2: // AAKC: A+K -> C
 	  this.add(this.model.a, this.getMask(), this.model.c);
 	  break;
-	case 3: // ABOA: B -> A
-	  this.copy(this.model.b, this.model.a);
+	case 3:
+	  if (sinclair) { // ACBB C+B -> B
+	    this.add(this.model.c, this.model.b, this.model.b);
+	  } else { // ABOA: B -> A
+	    this.copy(this.model.b, this.model.a);
+	  }
 	  break;
 	case 4: // ABOC: B -> C
 	  this.copy(this.model.b, this.model.c);
@@ -144,19 +148,37 @@ var Cpu = function(model, masks, sinclair) {
 	    this.model.ccMeaning = 'overflow';
 	  }
 	  break;
-	case 27: // AAKAH A+K -> A hex
-	  this.add(this.model.a, this.getMask(), this.model.a, 1 /* hex */);
-	  this.model.cc = 0;
-	  this.model.ccMeaning = '';
+	case 27:
+	  if (sinclair) { // SCBA C-B -> A
+	    this.sub(this.model.c, this.model.b, this.model.a);
+	  } else { // AAKAH A+K -> A hex
+	    this.add(this.model.a, this.getMask(), this.model.a, 1 /* hex */);
+	    this.model.cc = 0;
+	    this.model.ccMeaning = '';
+	  }
 	  break;
-	case 28: // SAKAH A-K -> A hex
-	  this.sub(this.model.a, this.getMask(), this.model.a, 1 /* hex */);
-	  this.model.cc = 0;
-	  this.model.ccMeaning = '';
+	case 28:
+	  if (sinclair) { // SCKB C-K -> B
+	    this.sub(this.model.c, this.getMask(), this.model.b);
+	  } else { // SAKAH A-K -> A hex
+	    this.sub(this.model.a, this.getMask(), this.model.a, 1 /* hex */);
+	    this.model.cc = 0;
+	    this.model.ccMeaning = '';
+	  }
 	  break;
 	case 29: // ACKC: C+K -> C
 	  this.add(this.model.c, this.getMask(), this.model.c);
 	  break;
+	case 30: 
+	  if (sinclair) { // AABC A+B -> C
+	    this.add(this.model.a, this.model.b, this.model.c);
+	    break;
+	  }
+	case 31: 
+	  if (sinclair) { // ACBC C+B -> C
+	    this.add(this.model.c, this.model.b, this.model.c);
+	    break;
+	  }
 	default:
 	  alert('Bad instruction ' + instruction);
 	  break;

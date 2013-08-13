@@ -76,6 +76,13 @@ This file holds unittests for cpu.js, based on qunit.
     var BKO = 8 << 7; // Branch on KO key
     var BKP = 9 << 7; // Branch on KP key
 
+    // Sinclair-specific opcodes
+    var S_ACBB = (3<<9) | (3<<4); // C+B -> B
+    var S_SCBA = (3<<9) | (27<<4); // C-B -> A
+    var S_SCKB = (3<<9) | (28<<4); // C-K -> B
+    var S_AABC = (3<<9) | (30<<4); // A+B -> C
+    var S_ACBC = (3<<9) | (31<<4); // C+B -> C
+
     var model;
     var cpu;
     module("cpu", {
@@ -275,6 +282,15 @@ This file holds unittests for cpu.js, based on qunit.
       equal( model.cc, 0, 'cc');
       equal( model.ccMeaning, "no borrow", 'ccMeaning');
       deepEqual( model.c, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Result");
+    });
+
+    test( "SCKC", function() {
+      model.rom[0x42] = SCKC | 1; // K = 4
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      cpu.step();
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "borrow", 'ccMeaning');
+      deepEqual( model.c, [1, 2, 3, 4, 5, 6, 7, 8, 9, 6, 9], "Result");
     });
 
     test( "CAB", function() {
@@ -857,6 +873,63 @@ This file holds unittests for cpu.js, based on qunit.
         model.address = 0x42; // Try instruction again
       }
     });
+
+    // Tests for Sinclair version
+
+    test( "sinclair-ACBB", function() {
+      cpu = new Cpu(model, masks, 1 /* sinclair */);
+      model.rom[0x42] = S_ACBB | 15;
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      deepEqual( model.b, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
+    });
+
+    test( "sinclair-SCBA", function() {
+      cpu = new Cpu(model, masks, 1 /* sinclair */);
+      model.rom[0x42] = S_SCBA | 15;
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      cpu.step();
+      equal( model.cc, 0, 'cc');
+      equal( model.ccMeaning, "no borrow", 'ccMeaning');
+      deepEqual( model.a, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Result");
+    });
+
+    test( "sinclair-SCKB", function() {
+      cpu = new Cpu(model, masks, 1 /* sinclair */);
+      model.rom[0x42] = S_SCKB | 1; // K = 4
+      model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
+      cpu.step();
+      equal( model.cc, 1, 'cc');
+      equal( model.ccMeaning, "borrow", 'ccMeaning');
+      deepEqual( model.b, [0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0], "Result");
+    });
+
+    test( "sinclair-AABC", function() {
+      cpu = new Cpu(model, masks, 1 /* sinclair */);
+      model.rom[0x42] = S_AABC | 15;
+      model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      model.a = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      deepEqual( model.c, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
+    });
+
+    test( "sinclair-ACBC", function() {
+      cpu = new Cpu(model, masks, 1 /* sinclair */);
+      model.rom[0x42] = S_ACBC | 15;
+      model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
+      model.c = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      cpu.step();
+      equal( model.cc, 0, "No ovf");
+      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      deepEqual( model.c, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
+    });
+
   </script>
 </body>
 </html>

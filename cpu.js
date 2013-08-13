@@ -461,8 +461,11 @@ var Cpu = function(model, masks, sinclair) {
 	}
       }
     }
-    this.model.cc = cc;
-    this.model.ccMeaning = cc ? 'flag set' : 'flag clear';
+    /* Only update cc if bit set */
+    if (cc) {
+      this.model.cc = cc;
+      this.model.ccMeaning = 'flag set';
+    }
   };
 
   this.updateD = function() {

@@ -736,15 +736,16 @@ This file holds unittests for cpu.js, based on qunit.
       deepEqual( model.af, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     });
 
-    test( "TFB-set", function() { // test flag B, unclear meaning for multi-bit flags
+    test( "TFB-clear", function() { // test flag B, unclear meaning for multi-bit flags
       model.rom[0x42] = TFB | 0;
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      model.ccMeaning = 'oldvalue';
       cpu.step();
       equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, 'flag clear', 'ccMeaning');
+      equal( model.ccMeaning, 'oldvalue', 'ccMeaning');
     });
 
-    test( "TFB-clear", function() { // test flag B
+    test( "TFB-set", function() { // test flag B
       model.rom[0x42] = TFB | 1;
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
@@ -752,19 +753,42 @@ This file holds unittests for cpu.js, based on qunit.
       equal( model.ccMeaning, 'flag set', 'ccMeaning');
     });
 
-    test( "TFA-set", function() { // test flag A
+    test( "TFA-clear-preclear", function() { // test flag A
       model.rom[0x42] = TFA | 2;
-      model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      model.af = [0, 1, 0 /* bit */ , 1, 0, 1, 0, 1, 0, 1, 0];
+      model.cc = 0;
+      model.ccMeaning = 'oldvalue';
       cpu.step();
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, 'flag clear', 'ccMeaning');
+      equal( model.cc, 0, 'cc still clear');
+      equal( model.ccMeaning, 'oldvalue', 'ccMeaning');
     });
 
-    test( "TFA-clear", function() { // test flag A
+    test( "TFA-set-preclear", function() { // test flag A
+      model.rom[0x42] = TFA | 3;
+      model.af = [0, 1, 0, 1 /* bit */, 0, 1, 0, 1, 0, 1, 0];
+      model.cc = 0;
+      model.ccMeaning = 'oldvalue';
+      cpu.step();
+      equal( model.cc, 1, 'cc set');
+      equal( model.ccMeaning, 'flag set', 'ccMeaning');
+    });
+
+    test( "TFA-clear-preset", function() { // test flag A
+      model.rom[0x42] = TFA | 2;
+      model.af = [0, 1, 0 /* bit */, 1, 0, 1, 0, 1, 0, 1, 0];
+      model.cc = 1;
+      model.ccMeaning = 'oldvalue';
+      cpu.step();
+      equal( model.cc, 1, 'cc still set');
+      equal( model.ccMeaning, 'oldvalue', 'ccMeaning');
+    });
+
+    test( "TFA-set-preset", function() { // test flag A
       model.rom[0x42] = TFA | 3;
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      model.cc = 1;
       cpu.step();
-      equal( model.cc, 1, 'cc');
+      equal( model.cc, 1, 'cc set');
       equal( model.ccMeaning, 'flag set', 'ccMeaning');
     });
 

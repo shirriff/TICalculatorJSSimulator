@@ -5,12 +5,7 @@
 // This file implements the keyboard grid, showing the currently-pressed key, the live grid wires,
 // and updates the strobe value in the model.
 
-var Keygrid = function(elem, model) {
-  this.keys = [
-    ['1', '2', '3', '4', '5', '6', '7', '8', '9', ''],
-    ['C', '=', '+', '-', '*', '/', 'CE', '.', '0', 'D'],
-    ['', '', '', '', '', '', '', '', '', '']];
-
+var Keygrid = function(elem, model, keys) {
   var context = elem.getContext('2d');
 
   var BOXSIZE = 26; // Keep this even
@@ -24,7 +19,7 @@ var Keygrid = function(elem, model) {
     if (fast) {
       // Skip the graphics and just check the keyStrobe
       for (var row = 0; row < 3; row++) {
-	if (model.keyPressed && this.keys[row][model.dActive - 1] == model.keyPressed) {
+	if (model.keyPressed && keys[row][model.dActive - 1] == model.keyPressed) {
 	  model.keyStrobe = ['KN', 'KO', 'KP'][row]; // Cleared at beginning of method
 	}
       }
@@ -45,7 +40,7 @@ var Keygrid = function(elem, model) {
     context.textBaseline = 'middle';
     context.strokeStyle = 'black';
     for (var row = 0; row < 3; row++) {
-      if (model.keyPressed && this.keys[row][model.dActive - 1] == model.keyPressed) {
+      if (model.keyPressed && keys[row][model.dActive - 1] == model.keyPressed) {
 	// Key pressed in current row, so highlight row and activate strobe
 	model.keyStrobe = ['KN', 'KO', 'KP'][row]; // Cleared at beginning of method
         context.strokeStyle = '#f77';
@@ -63,11 +58,11 @@ var Keygrid = function(elem, model) {
 	context.beginPath();
 	context.rect(XMARGIN + XSPACING * col, YMARGIN + YSPACING * row, BOXSIZE, BOXSIZE);
 	// Highlight pressed key.
-	context.fillStyle = (model.keyPressed && this.keys[row][col] == model.keyPressed) ? '#aaf' : 'white';
+	context.fillStyle = (model.keyPressed && keys[row][col] == model.keyPressed) ? '#aaf' : 'white';
 	context.fill();
 	context.stroke();
 	context.fillStyle = 'black';
-	context.fillText(this.keys[row][col], XMARGIN + BOXSIZE / 2 + XSPACING * col, YMARGIN + BOXSIZE / 2 + YSPACING * row);
+	context.fillText(keys[row][col], XMARGIN + BOXSIZE / 2 + XSPACING * col, YMARGIN + BOXSIZE / 2 + YSPACING * row);
       }
     }
     context.restore();

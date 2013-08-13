@@ -1,0 +1,362 @@
+<html>
+  <!--
+Sinclair Scientific calculator simulator
+Ken Shirriff, http://righto.com/ti
+Based on patent US3934233 and visual 6502 reverse engineering
+-->
+  <head>
+  <title>Reverse-engineering and simulating the Sinclair Scientific calculator</title>
+  <meta name="description" content="Register-level simulator of the Sinclair Scientific calculator">
+  <meta name="keywords" content="calculator,simulator,0805, Sinclair Scientific, TI,Texas Instruments, reverse engineering">
+  <meta name="author" content="Ken Shirriff">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<link href='http://fonts.googleapis.com/css?family=Chivo:400' rel='stylesheet' type='text/css'/>
+
+<script src="calcImage.js"></script>
+<script src="controller.js"></script>
+<script src="cpu.js"></script>
+<script src="display.js"></script>
+<script src="instruction.js"></script>
+<script src="keygrid.js"></script>
+<script src="masks_sinclair.js"></script>
+<script src="model.js"></script>
+<script src="registers.js"></script>
+<script src="sourceCode_sinclair.js"></script>
+<script src="sourceWindow.js"></script>
+<!-- header styles -->
+<style type="text/css">
+  body {
+    font-family: arial;
+    margin: 0;
+  }
+
+  #header {
+    padding: 0;
+    margin: 0;
+    border-top: dotted 1px #444444;
+    border-bottom: dotted 1px #444444;
+    background: #f6fbf7;
+  }
+
+  h1 {
+    margin: 8px 0 0 0;
+    padding-top:20px;
+    padding-right:0px;
+    padding-bottom:2px;
+    padding-left:5%;
+    color:#444444;
+    background:#f6fbf7;
+    font:normal 300% Chivo,Verdana,Sans-Serif;
+    letter-spacing:-2px;
+  }
+
+  .description {
+    padding:0px;
+    margin-top:7px;
+    margin-right:12%;
+    margin-bottom:7px;
+    margin-left:5%;
+    color:#444444;
+    background:transparent;
+    font:bold 100% Verdana,Sans-Serif;
+  }
+
+  div.cite {font-size: .8em;.; font-style: italic; color: #888; margin-bottom: 9px;}
+
+  .cite a {color: #888 !important;}
+
+  a.ref { color: gray;vertical-align: super; text-decoration: none; font-size:60%;margin-left: 2px;}
+
+  a img.hilite {
+    border: 1px solid;
+    color: #888;
+  }
+  a:link img.hilite, a:visited img.hilite {
+    color: #888;
+  }
+  a:hover img.hilite {
+    color: #f66;
+  }
+  a:active img.hilite {
+    color: #33c;
+  }
+</style>
+  
+<!-- content styles -->
+<style type="text/css">
+  .content {
+    margin: 20px;
+  }
+
+  h3 {
+    color: #444444;
+    font: normal 160% Verdana,Sans-Serif;
+    letter-spacing: -1px;
+  }
+
+  #calcImageDiv {
+    float: left;
+    height:400px;
+    position: relative;
+  }
+
+  #calcImage {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  button {
+    border: 1px solid #ccc;
+    width: 33px;
+    height: 33px;
+    cursor: pointer;
+  }
+
+  .cond, .cond th, .cond tr, .cond td {
+    border: none !important;
+    text-align: left !important;
+  }
+
+  td {
+    font-family: courier, fixed;
+  }
+
+  #registers {
+    border-collapse: collapse;
+    border-right: 1px solid #ddd;
+  }
+
+  #registers th {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 10px;
+    border-right: 1px solid #ddd;
+    max-width: 70px;
+    width: 70px;
+  }
+
+  #registers td {
+    text-align: center;
+    min-width: 43px;
+    width: 43px;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .mask {
+    background-color: #fcc;
+  }
+
+  #sourceWindow {
+    font-size: 14px;
+    line-height: 1em;
+    width: 500px;
+    height: 336px;
+    border: 1px solid #ddd;
+    font-family: courier, fixed;
+    font-size: 12px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+  }
+
+  div#instruction {
+    margin-top: 10px;
+  }
+    
+  div#sourceWindow div {
+    font-family: courier, fixed;
+    white-space: pre;
+    color: #ccc;
+  }
+
+  .addr {
+    color: #844;
+  }
+
+  .instr {
+    color: #000;
+  }
+  
+  .comment {
+    color: #090;
+  }
+
+  .highlight {
+    background-color: #fcc;
+  }
+</style>
+
+<script>
+
+$(document).ready(function() {
+  var model = new Model(objectCode);
+  var calcImage = new CalcImage($("#calcImage"), model);
+  var keys = [
+    ['1', '2', '3', '4', '5', '6', '7', '8', '9', ''],
+    ['C', '\u25bc' /* down */, '+', '-', '\u00f7' /* div */, '\u00d7' /* mult */, '\u25b2' /* up */, 'E', '0', ''],
+    ['', '', '', '', '', '', '', '', '', '']];
+  var keygrid = new Keygrid($("#keygrid")[0], model, keys);
+  var registers = new Registers($("#registers")[0], model);
+  var display = new Display($("#display"), model);
+  var display2 = new Display($("#calcDisplay"), model);
+  var sourceWindow = new SourceWindow($("#sourceWindow"), model, sourceCode);
+  var cpu = new Cpu(model, masks, 1 /* sinclair */);
+  var instruction = new Instruction($("#instruction"), model);
+  var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
+    registers, instruction, $("#playButton"), $("#stopButton"), $("#stepButton"));
+});
+</script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-3782444-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+</body>
+<div id="header-wrapper" style="font-size:small">
+<div class="header section" id="header"><div class="widget Header" id="Header1">
+<div id="header-inner" style="background-image: url(https://lh5.googleusercontent.com/-OyFd36t2Doo/T7nMSchO46I/AAAAAAAAKjM/ynuhCCEf_bs/s800/background.jpg); background-position: right ; min-height: 105px; height: 105px; background-repeat: no-repeat; ">
+<div class="titlewrapper" style="background: transparent" onclick="window.location='http://righto.com'">
+<h1 class="title" style="background: transparent; border-width: 0px">
+Ken Shirriff's blog
+</h1>
+</div>
+<div class="descriptionwrapper">
+	<!--
+<p class="description"><span>Chargers, microprocessors, Arduino, and whatever</span></p>
+</div>
+-->
+</div>
+</div></div>
+</div>
+
+<div class="content">
+  <h3>Reverse-engineering and simulating the Sinclair Scientific calculator</h3>
+  <p>
+<div id="calcImageDiv">
+  <img id="calcImage" src="http://files.righto.com/calculator/TI_DataMath_2500.jpg" width=220 height=400></img>
+  <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
+</div>
+<div style="margin-left: 240px; ">
+  <button id="playButton" title="run" style="background:url(http://files.righto.com/calculator/play.png) no-repeat 2px 2px;"></button>
+  <button id="stopButton" title="stop" style="background:url(http://files.righto.com/calculator/stop.png) no-repeat 2px 2px;"></button>
+  <button id="stepButton" title="step" style="background:url(http://files.righto.com/calculator/step.png) no-repeat 2px 2px;"></button>
+  <br/>
+  <div id="sourceWindow"></div>
+  <div id="instruction"></div>
+</div>
+<div style="clear: both;"></div>
+<p>
+<p>
+<canvas id="display" width="405" height="70" style="padding-left: 80px;"></canvas>
+<br/>
+<canvas id="keygrid" width="405" height="140" style="margin-left: 80px"></canvas>
+<table id="registers">
+  <tr><th>D</th>
+    <td id="registers-d10"></td>
+    <td id="registers-d9"></td>
+    <td id="registers-d8"></td>
+    <td id="registers-d7"></td>
+    <td id="registers-d6"></td>
+    <td id="registers-d5"></td>
+    <td id="registers-d4"></td>
+    <td id="registers-d3"></td>
+    <td id="registers-d2"></td>
+    <td id="registers-d1"></td>
+    <td id="registers-d0"></td>
+  </tr>
+  <tr><th>A</th>
+    <td id="registers-a10"></td>
+    <td id="registers-a9"></td>
+    <td id="registers-a8"></td>
+    <td id="registers-a7"></td>
+    <td id="registers-a6"></td>
+    <td id="registers-a5"></td>
+    <td id="registers-a4"></td>
+    <td id="registers-a3"></td>
+    <td id="registers-a2"></td>
+    <td id="registers-a1"></td>
+    <td id="registers-a0"></td>
+  </tr>
+  <tr><th>B</th>
+    <td id="registers-b10"></td>
+    <td id="registers-b9"></td>
+    <td id="registers-b8"></td>
+    <td id="registers-b7"></td>
+    <td id="registers-b6"></td>
+    <td id="registers-b5"></td>
+    <td id="registers-b4"></td>
+    <td id="registers-b3"></td>
+    <td id="registers-b2"></td>
+    <td id="registers-b1"></td>
+    <td id="registers-b0"></td>
+  </tr>
+  <tr><th>C</th>
+    <td id="registers-c10"></td>
+    <td id="registers-c9"></td>
+    <td id="registers-c8"></td>
+    <td id="registers-c7"></td>
+    <td id="registers-c6"></td>
+    <td id="registers-c5"></td>
+    <td id="registers-c4"></td>
+    <td id="registers-c3"></td>
+    <td id="registers-c2"></td>
+    <td id="registers-c1"></td>
+    <td id="registers-c0"></td>
+  </tr>
+  <tr><th>AF</th>
+    <td id="registers-af10" title="dpt"></td>
+    <td id="registers-af9"></td>
+    <td id="registers-af8"></td>
+    <td id="registers-af7" title="st"></td>
+    <td id="registers-af6" title="sign"></td>
+    <td id="registers-af5" title="post/temp"></td>
+    <td id="registers-af4" title="equal"></td>
+    <td id="registers-af3" title="clear display"></td>
+    <td id="registers-af2" title="op3: operation"></td>
+    <td id="registers-af1" title="op2: sub/div"></td>
+    <td id="registers-af0" title="op1: mul/div"></td>
+  </tr>
+  <tr><th>BF</th>
+    <td id="registers-bf10" title="fd"></td>
+    <td id="registers-bf9"></td>
+    <td id="registers-bf8"></td>
+    <td id="registers-bf7"></td>
+    <td id="registers-bf6" title="sign"></td>
+    <td id="registers-bf5" title="ovf"></td>
+    <td id="registers-bf4" title="post/temp"></td>
+    <td id="registers-bf3" title="const"></td>
+    <td id="registers-bf2" title="op3: operation"></td>
+    <td id="registers-bf1" title="op2: sub/div"></td>
+    <td id="registers-bf0" title="op1: mul/div"></td>
+  </tr>
+  <tr><th>MASK/K</th>
+    <td id="registers-m10"></td>
+    <td id="registers-m9"></td>
+    <td id="registers-m8"></td>
+    <td id="registers-m7"></td>
+    <td id="registers-m6"></td>
+    <td id="registers-m5"></td>
+    <td id="registers-m4"></td>
+    <td id="registers-m3"></td>
+    <td id="registers-m2"></td>
+    <td id="registers-m1"></td>
+    <td id="registers-m0"></td>
+  </tr>
+  <tr class="cond"><th>Instr</th>
+    <td colspan=4 id="registers-i" style="font-family: courier, fixed"></td>
+  </tr>
+  <tr class="cond"><th>Cond</th>
+    <td colspan=4 id="registers-cc"></td>
+  </tr>
+</table>
+</html>

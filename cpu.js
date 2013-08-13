@@ -3,28 +3,10 @@
 // Based on patent US3934233
 //
 // This file simulates the CPU chip
-var Cpu = function(model) {
-  this.model = model;
 
-  // S10 on left, S0 on right
-  this.masks = [
-    "          7", // M0
-    "         4 ", // M1
-    "        1  ", // M2
-    "       0   ", // M3
-    "      0    ", // M4
-    "     0     ", // M5
-    "    0      ", // M6
-    " 0         ", // M7
-    "1          ", // M8
-    "        000", // M9
-    "01         ", // M10
-    "000000001  ", // M11
-    "000000000  ", // M12
-    "         01", // M13
-    "         00", // M14
-    "00000000000", // M15
-    ];
+// sinclair is true for the Sinclair Scientific (0805) version of the CPU.
+var Cpu = function(model, masks, sinclair) {
+  this.model = model;
 
   // Gets the mask number from the current instruction in the model
   this.getMaskNum = function() {
@@ -41,7 +23,7 @@ var Cpu = function(model) {
     var opcode = (instruction >> 4) & 0x1f;
     if (classBits == 3 || (classBits == 2 && opcode > 18 &&
 	  opcode != 21 && opcode != 22)) {
-      var mask = this.masks[this.getMaskNum()];
+      var mask = masks[this.getMaskNum()];
       var maskVec = [];
       for (var i = 0; i <= 10; i++) {
 	if (mask[i] === ' ') {

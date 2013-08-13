@@ -19,6 +19,7 @@ Based on patent US3934233
 <script src="instruction.js"></script>
 <script src="keygrid.js"></script>
 <script src="keygrid.js"></script>
+<script src="masks_0800.js"></script>
 <script src="model.js"></script>
 <script src="registers.js"></script>
 <script src="sourceCode.js"></script>
@@ -197,7 +198,7 @@ $(document).ready(function() {
   var display = new Display($("#display"), model);
   var display2 = new Display($("#calcDisplay"), model);
   var sourceWindow = new SourceWindow($("#sourceWindow"), model, sourceCode);
-  var cpu = new Cpu(model);
+  var cpu = new Cpu(model, masks);
   var instruction = new Instruction($("#instruction"), model);
   var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
     registers, instruction, $("#playButton"), $("#stopButton"), $("#stepButton"));

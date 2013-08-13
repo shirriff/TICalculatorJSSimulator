@@ -5,6 +5,10 @@ Ken Shirriff, http://righto.com/ti
 Based on patent US3934233
 -->
   <head>
+  <title>Simulating a TI calculator with crazy 11-bit opcodes</title>
+  <meta name="description" content="Register-level simulator of a TI calculator with 11-bit opcodes">
+  <meta name="keywords" content="calculator,simulator,TI,Datamath,0800,Texas Instruments, reverse engineering">
+  <meta name="author" content="Ken Shirriff">
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
 <link href='http://fonts.googleapis.com/css?family=Chivo:400' rel='stylesheet' type='text/css'/>
 
@@ -199,6 +203,19 @@ $(document).ready(function() {
     registers, instruction, $("#playButton"), $("#stopButton"), $("#stepButton"));
 });
 </script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-3782444-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
 </head>
 </body>
 <div id="header-wrapper" style="font-size:small">
@@ -210,8 +227,10 @@ Ken Shirriff's blog
 </h1>
 </div>
 <div class="descriptionwrapper">
+	<!--
 <p class="description"><span>Chargers, microprocessors, Arduino, and whatever</span></p>
 </div>
+-->
 </div>
 </div></div>
 </div>
@@ -357,7 +376,7 @@ This processor has many unusual architectural features. It's interesting to exam
 <p>
 The three registers (A, B, and C) hold eleven decimal digits as BCD, and the arithmetic takes place in decimal, digit by digit. The chip supports multi-digit decimal addition and subtraction, but not multiplication or division.
 <p>
-Each instruction is an 11 bit opcode, which comes from a ROM that has 320 11-bit words. The entire calculator software had to fit in this tiny ROM. An eleven bit instruction set seems very unusual, but it allows all instructions to fit into a single 11-bit word, avoiding multi-byte instructions. The first two bits of an instruction are the "class", selecting the type of instruction (arithmetic, flag, or branch). The next 5 bits select the specific instruction opcode. The final five bits select the mask and constant. The following drawing from <a href="https://www.google.com/patents/US3934233">the patent</a> shows the structure:
+Each instruction is an 11 bit opcode, which comes from a ROM that has 320 11-bit words. The entire calculator software had to fit in this tiny ROM. An eleven bit instruction set seems very unusual, but it allows all instructions to fit into a single 11-bit word, avoiding multi-byte instructions. The first two bits of an instruction are the "class", selecting the type of instruction (arithmetic, flag, or branch). The next 5 bits select the specific instruction opcode. The final four bits select the mask and constant. The following drawing from <a href="https://www.google.com/patents/US3934233">the patent</a> shows the structure:
 <p>
 <a href="https://www.google.com/patents/US3934233">
 <img class="hilite" src="https://lh4.googleusercontent.com/-lUdHoHanHTE/UcZxYHi1BAI/AAAAAAAAT1E/KXurwlCpPjc/s400/opcodes.png" width="400" alt="Opcode structure for a TI calculator. From https://www.google.com/patents/US3934233" title="Opcode structure for a TI calculator. From https://www.google.com/patents/US3934233">
@@ -403,11 +422,16 @@ Additional code handles constant operations, a more advanced feature than you'd 
 It's interesting to watch the digits bounce back and forth, even for simple computations. There's a lot more happening in a calculator and more programming involved than you might think.
 <p>
 The simulator will lock up in a few cases, such as overflow. I think these bugs are in the source code, not the simulator. The source code from the patent is slightly different from the code that was shipped in real calculators, so some bugs may have been fixed.
+<h4>Making a scientific calculator from this chip</h4>
+The most amazing thing about this chip is that the Sinclair company took this chip with barely enough ROM to do four-function math, and reprogrammed it into a scientific calculator with trig, inverse trig, exponentials, and logs. The resulting <a href="http://en.wikipedia.org/wiki/Sinclair_Scientific">Sinclair Scientific</a> calculator became popular due to its low cost.
+<p>
+How did Sinclair fit all this into 320 words of ROM? The short answer is they used RPN which simplified the code, and they made extreme tradeoffs in the scientific algorithms that reduced accuracy and performance. The algorithms are a bit like decimal <a href="http://en.wikipedia.org/wiki/CORDIC">CORDIC</a>, but much simplified. I plan to provide full details later.
 <h4>Notes and credits</h4>
 For sharing, <a href="http://righto.com/ti">righto.com/ti</a> is a short link to this page.
 <p>
 This simulator is based on the extremely detailed 50 page patent (<a href="https://www.google.com/patents/US3934233">3934233</a>),  which is one of the most informative patents I've seen. I wish all patents were like this one: the text seems to have been written by engineers who wanted to explain everything, and the patent includes the full schematic and source code. Ironically, the patent itself is very narrow, claiming an obscure detail of the ROM decoding that could have been written up in about 2 pages.
 <p>
 Source code entered by Phil Mainwaring. Calculator <a href="http://commons.wikimedia.org/wiki/File:TI_DataMath_2500.jpg">image</a> from <a href="//de.wikipedia.org/wiki/Ralf_Pfeifer" title="de:Ralf Pfeifer">Ralf Pfeifer</a> at <a href="http://de.wikipedia.org">de.wikipedia</a>. Built using <a href="http://jquery.com/">jQuery</a> and tested with <a href="http://qunitjs.com/">QUnit</a>. Inspired by <a href="http://visual6502.org/">Visual 6502</a>.
-</div>
+<p>
+<div style="background: #cef; border: 2px solid #bbb; font-weight: bold; padding: 4px;">There's lots of discussion of this simulator at <a href="http://www.reddit.com/r/programming/comments/1k630o/simulating_a_ti_calculator_with_crazy_11bit/">Reddit programming</a> and <a href="http://www.metafilter.com/130871/Simulating-a-TI-calculator-with-crazy-11-bit-opcodes">MetaFilter</a>. Thanks for visiting!</div>
 </html>

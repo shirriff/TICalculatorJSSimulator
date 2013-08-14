@@ -159,9 +159,10 @@ This file holds unittests for cpu.js, based on qunit.
       model.rom[0x42] = AABA | 15;
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      model.cc = 1;
       cpu.step();
-      equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      equal( model.cc, 1, "No ovf"); // unchanged
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.a, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
     });
 
@@ -170,8 +171,8 @@ This file holds unittests for cpu.js, based on qunit.
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
-      equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      equal( model.cc, 0, "No ovf"); // unchanged
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 4], "Result");
     });
 
@@ -228,9 +229,10 @@ This file holds unittests for cpu.js, based on qunit.
       model.rom[0x42] = ACKA | 13; // K = 01
       model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       model.c = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      model.cc = 1;
       cpu.step();
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      equal( model.cc, 1, 'cc'); // unchanged
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 2, 4], "Result");
     });
 
@@ -239,8 +241,8 @@ This file holds unittests for cpu.js, based on qunit.
       model.b = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9];
       model.c = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      equal( model.cc, 0, 'cc'); // unchanged
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.b, [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3], "Result");
     });
 
@@ -279,8 +281,8 @@ This file holds unittests for cpu.js, based on qunit.
       model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       cpu.step();
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, "no borrow", 'ccMeaning');
+      equal( model.cc, 0, 'cc'); // unchanged
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.c, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Result");
     });
 
@@ -495,7 +497,7 @@ This file holds unittests for cpu.js, based on qunit.
       }
       keygrid.update();
       cpu.step();
-      equal( model.address, 0x43);
+      equal( model.address, 0x44); // Skip an instruction
       equal( model.cc, 1, 'cc');
       equal( model.ccMeaning, 'overflow', 'ccMeaning');
       // A should be incremented by 10
@@ -578,7 +580,7 @@ This file holds unittests for cpu.js, based on qunit.
       model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       cpu.step();
       equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, 'no overflow', 'ccMeaning');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.c, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 8]);
     });
 
@@ -814,9 +816,10 @@ This file holds unittests for cpu.js, based on qunit.
       model.rom[0x42] = CF | 15;
       model.af = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      model.cc = 1;
       cpu.step();
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, 'flags equal', 'ccMeaning');
+      equal( model.cc, 1, 'unchanged');
+      equal( model.ccMeaning, '', 'ccMeaning');
     });
 
     test( "CF-equal", function() { // compare flags
@@ -824,8 +827,8 @@ This file holds unittests for cpu.js, based on qunit.
       model.af = [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0];
       model.bf = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
       cpu.step();
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, 'flags equal', 'ccMeaning');
+      equal( model.cc, 0, 'unchanged');
+      equal( model.ccMeaning, '', 'ccMeaning');
     });
 
     test( "CF-notequal", function() { // compare flags
@@ -905,9 +908,10 @@ This file holds unittests for cpu.js, based on qunit.
       model.rom[0x42] = S_ACBB | 15;
       model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       model.b = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      model.cc = 1;
       cpu.step();
-      equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      equal( model.cc, 1, "unchanged");
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.b, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
     });
 
@@ -917,8 +921,8 @@ This file holds unittests for cpu.js, based on qunit.
       model.c = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9];
       cpu.step();
-      equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, "no borrow", 'ccMeaning');
+      equal( model.cc, 0, 'unchanged');
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.a, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Result");
     });
 
@@ -937,9 +941,10 @@ This file holds unittests for cpu.js, based on qunit.
       model.rom[0x42] = S_AABC | 15;
       model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       model.a = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+      model.cc = 1;
       cpu.step();
-      equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      equal( model.cc, 1, "unchanged");
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.c, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
     });
 
@@ -949,8 +954,8 @@ This file holds unittests for cpu.js, based on qunit.
       model.b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1];
       model.c = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
       cpu.step();
-      equal( model.cc, 0, "No ovf");
-      equal( model.ccMeaning, "no overflow", 'ccMeaning');
+      equal( model.cc, 0, "unchanged");
+      equal( model.ccMeaning, "", 'ccMeaning');
       deepEqual( model.c, [2, 4, 6, 4, 6, 9, 0, 9, 0, 2, 4], "Result");
     });
 

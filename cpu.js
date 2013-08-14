@@ -129,11 +129,11 @@ var Cpu = function(model, masks, sinclair) {
 	case 25: // SRLC: shift C right
 	  this.srl(this.model.c);
 	  break;
-	case 26: // AKCN: A+K -> A until key down or D11 [sic]
+	case 26: // AKCN: A+K -> A until key down on N or D11 [sic]
 	  // Patent says sets condition if key down, but real behavior
 	  // is to set condition if overflow (i.e. no key down)
 	  this.add(this.model.a, this.getMask(), this.model.a);
-	  if (this.model.keyStrobe) {
+	  if (this.model.keyStrobe == 'KN') {
 	    this.model.cc = 0;
 	    this.model.ccMeaning = 'no overflow';
 	    // Advance to next instruction
@@ -143,7 +143,8 @@ var Cpu = function(model, masks, sinclair) {
 	    this.model.cc = 0;
 	    this.model.ccMeaning = 'no overflow';
 	  } else {
-	    // For state d10, advance to next instruction
+	    // For state d10, skip next instruction? Fixes code bug?
+	    nextAddress = this.model.address + 2;
 	    this.model.cc = 1;
 	    this.model.ccMeaning = 'overflow';
 	  }
@@ -324,8 +325,10 @@ var Cpu = function(model, masks, sinclair) {
 	dst[i] = result;
       }
     }
-    this.model.cc = carry;
-    this.model.ccMeaning = carry ? 'overflow' : 'no overflow';
+    if (carry) {
+      this.model.cc = carry;
+      this.model.ccMeaning = carry ? 'overflow' : 'no overflow';
+    }
   };
 
   this.sub = function(src1, src2, dst, hex) {
@@ -346,8 +349,10 @@ var Cpu = function(model, masks, sinclair) {
 	dst[i] = result;
       }
     }
-    this.model.cc = borrow;
-    this.model.ccMeaning = borrow ? 'borrow' : 'no borrow';
+    if (borrow) {
+      this.model.cc = borrow;
+      this.model.ccMeaning = borrow ? 'borrow' : 'no borrow';
+    }
   };
 
   this.compare = function(src1, src2) {
@@ -366,8 +371,6 @@ var Cpu = function(model, masks, sinclair) {
 	dst[i] = src[i];
       }
     }
-    this.model.cc = 0;
-    this.model.ccMeaning = '';
   };
 
   this.sll = function(src) {
@@ -383,8 +386,6 @@ var Cpu = function(model, masks, sinclair) {
 	digit = newdigit;
       }
     }
-    this.model.cc = 0;
-    this.model.ccMeaning = '';
   };
 
   this.srl = function(src) {
@@ -400,8 +401,6 @@ var Cpu = function(model, masks, sinclair) {
 	digit = newdigit;
       }
     }
-    this.model.cc = 0;
-    this.model.ccMeaning = '';
   };
 
   this.writeFlag = function(dest, val) {
@@ -430,8 +429,10 @@ var Cpu = function(model, masks, sinclair) {
 	}
       }
     }
-    this.model.cc = cc;
-    this.model.ccMeaning = cc ? 'flags not equal' : 'flags equal';
+    if (cc) {
+      this.model.cc = 1;
+      this.model.ccMeaning = 'flags not equal';
+    }
   };
 
   this.exchange = function(src1, src2) {

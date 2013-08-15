@@ -81,10 +81,10 @@ a9876543210 :S value
 
 0   START    ZFA    ALL ; init - clear flags
 1            ZFB    ALL
-2            AKA    ALL; clear A and C
+2            AKA    ALL ; clear A and C
 3            AKC    ALL
 4   MAINLOOP SLLA   MANT ; Restore mantissa
-5            AKB    ALL; clear B
+5            AKB    ALL ; clear B
 6   WAITSCAN SYNC
 7            SCAN
 8            BINE   WAITSCAN
@@ -179,7 +179,7 @@ a9876543210 :S value
 97  DIVKEY   TFA    UP_LOW ; entry point for DIV
 98           BINE   TANKEY ; alt-DIV is TAN
 99           SFA    COS_TAN ; why set COS? Doesn't make sense
-100 LABEL100 SFA    RET1FLAG ; "subroutine call" flag
+100 LABEL100 SFA    RET1FLAG ; 'subroutine call' flag
 101          BIE    WRAPUP ; BET
 102 RET1     ZFA    RET1FLAG ; RET1FLAG means return here
 103          AAKA   EXP_S

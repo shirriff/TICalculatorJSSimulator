@@ -14,6 +14,7 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   this.sourceWindow = sourceWindow;
   this.cpu = cpu;
   this.registers = registers;
+  this.autospeed = 1;
   this.calcImage.callback = function(key) {
     if (model.keyPressed == key) {
       // toggle off
@@ -61,9 +62,9 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   stopButton.hide();
 
   // Post-cpu updates
-  var updateInt = function() {
-    if (model.fast ==0 || model.idle == 1) {
-      keygrid.update();
+  var updateInt = function(skipUpdate) {
+    if (!skipUpdate) {
+      keygrid.update(model.idle ? 0 : 1 /* fast */);
       display.update();
       display2.update();
       registers.update();
@@ -77,35 +78,56 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   updateInt();
 
   this.update = function() {
-    // Hack to detect idle loop. Release any pressed key.
-    if (model.sinclair) {
-      if (model.address == 0x6) {
-	model.keyPressed = '';
+    var iterations = 1;
+    if (model.speed == 'fast') {
+      iterations = 100;
+    } else if (model.speed == 'auto') {
+      // The idea of autospeed is to do the first 200 ops at a moderate pace
+      // and then accelerate so long trig operations will finish in a reasonable time
+      if (that.autospeed < 200) {
+        iterations = 1;
+      } else {
+	iterations = that.autospeed / 10 - 18;
       }
-    } else {
-      if (model.address == 0x22) {
-	model.keyPressed = '';
-      }
-    }
-    if (model.rom[model.address] >> 4 == 0x52 && model.keyPressed == '') { // WAITNO
-      model.idle = 1;
-    } else {
-      model.idle = 0;
+      that.autospeed++;
+    } else if (model.speed == 'slow') {
+      iterations = 1;
     }
 
-    cpu.step();
+    for (var i = 0; i < iterations; i++) {
+      // Hack to detect idle loop. Release any pressed key.
+      if (model.sinclair) {
+	if (model.address == 0x6) {
+	  model.keyPressed = '';
+	}
+      } else {
+	if (model.address == 0x22) {
+	  model.keyPressed = '';
+	}
+      }
+      if (model.rom[model.address] >> 4 == 0x52 && model.keyPressed == '') { // WAITNO
+	model.idle = 1;
+	that.autospeed = 1; /* reset autospeed */
+      } else {
+	model.idle = 0;
+      }
+
+      cpu.step();
+      updateInt(1 /* skip */);
+
+      // Get breakpoint query parameter
+      var breakpoint = (RegExp('breakpoint=' + '(.+?)(&|$)').exec(location.search)||[,null])[1];
+      // Stop if address hits breakpoint
+      if (breakpoint && parseInt(breakpoint, 16) == model.address) {
+	stopButton.click();
+      }
+    }
     updateInt();
-
-    // Get breakpoint query parameter
-    var breakpoint = (RegExp('breakpoint=' + '(.+?)(&|$)').exec(location.search)||[,null])[1];
-    // Stop if address hits breakpoint
-    if (breakpoint && parseInt(breakpoint, 16) == model.address) {
-      stopButton.click();
-    }
 
     if (model.running) {
       // Slow down the loop if we're in the idle loop to save CPU
-      setTimeout(that.update, model.idle ? 250 : 1);
+      var timeout = model.idle ? 250 : (model.speed == 'slow' ? 50 : 1);
+      setTimeout(that.update, timeout);
     }
   };
   playButton.click(); // Start it running

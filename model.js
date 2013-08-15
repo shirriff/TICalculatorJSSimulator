@@ -32,6 +32,6 @@ var Model = function(objectCode, sinclair) {
   this.mask = null;
   this.showDisplayScan = 0;
   this.idle = 0; // 1 if in idle loop
-  this.fast = 0; // Fast updates
+  this.speed = 'auto'; // Speed for updates
   this.fastStep = 1; // 1 makes SYNC, etc take 1 cycle
 };

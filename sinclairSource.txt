@@ -222,8 +222,8 @@ a9876543210 :S value
 140          AKA    EXP1 ; Set exponent to 1
 141 LABEL141 SAKA   EXP1 ; Decrement exponent
 142 MANTNEG  AAKA   EXP1 ; Increment exponent
-143          BIE    WLOOP ; first will clear flag
-144          BIE    WLOOP ; BET
+143          BIE    MANTSHL ; first will clear flag
+144          BIE    MANTSHL ; BET
 145 MANTOK   SRLA   MANT
 146          CAK    EXP_S ; Test exponent sign
 147          BINE   EXPPOS
@@ -237,10 +237,10 @@ a9876543210 :S value
 155          SFB    FLAG6B ; Set op done flag?
 156          ZFA    ALL ; Clear A flags
 157          CAK    EXP1 ; Is exponent zero (< 1)
-158          BIE    EXPPOS
+158          BIE    EXPPOS2
 159 LABEL159 AAKA   EXP_S ; Flip sign
 160          BIE    LABEL159 ; Branch if sign was clear before
-161 EXPPOS   AAKC   ALL ; Copy A to C
+161 EXPPOS2  AAKC   ALL ; Copy A to C
 162          BIE    MAINLOOP ; BET
 163 TANKEY   SFA    TAN
 164 COSKEY   SFA    COS_TAN

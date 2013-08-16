@@ -3,7 +3,7 @@ Notes and analysis of the Sinclair Scientific ROM
 EXP: exponent mask
 DIGIT1, DIGIT: used with AKCN increment. MASK3 is 1. Don't overlap with 4.
 MANT: the A value?
-EXP_S: negative exponent
+EXP_S5: negative exponent
 NEWEXP: E pressed, entering a new exponent
 
 FLAGS:
@@ -40,44 +40,24 @@ e: .*.. 4
 f: ....
 
 Masks:
-Rotated by 1 in ROM?:
-0a987654321 :S value
-00000000000 mask 0 all
- 5          mask 1 flag1a, emode(b)
-   00       mask 2
-     1      mask 3 inc mask up_low(a)
-0    000000 mask 4 a value
-1           mask 5 low(a)
-   01       mask 6 flag6b
-  5         mask 7 negative exponent tan(a), emode2(b)
- 000000     mask 8
- 0001       mask 9
-1    000000 mask a
-      1     mask b cos_tan(a)
-     00005  mask c
-     00001  mask d
-     4      mask e
-     0      mask f inc mask
-
-Masks:
-SSEEMMMMM
-a9876543210 :S value
-00000000000 mask 0 all
-5           mask 1 flag1a, emode(b)
-  00        mask 2
-    1       mask 3 inc mask up_low(a)
-    0000000 mask 4 a value
-          1 mask 5 low(a)
-  01        mask 6 flag6b
- 5          mask 7 negative exponent tan(a), emode2(b)
-000000      mask 8
-0001        mask 9
-    0000001 mask a
-     1      mask b cos_tan(a)
-    00005   mask c
-    00001   mask d
-    4       mask e
-    0       mask f inc mask
+ S value
+a9876543210
+00000000000 mask 0 ALL
+5           mask 1 MANT_S5
+  00        mask 2 EXP
+    1       mask 3 DIGIT1
+    0000000 mask 4 MANT
+          1 mask 5 MANTLOW1
+  01        mask 6 EXP1
+ 5          mask 7 EXP_S5
+000000      mask 8 MASK8
+0001        mask 9 MASK9
+    0000001 mask a MANT1
+     1      mask b MASK11
+    00005   mask c MANTD5
+    00001   mask d MANTD1
+    4       mask e DIGIT4
+    0       mask f DIGIT
 
 0   START    ZFA    ALL ; init - clear flags
 1            ZFB    ALL
@@ -134,68 +114,68 @@ a9876543210 :S value
 52           BINE   COSKEY
 53           TFB    NEWEXP ; - follows E?
 54           BIE    SETNEG
-55           AAKA   EXP_S ; if so, set minus digit
-56           BIE    MAINLOOP
-57  SETNEG   AAKA   MANT_S ; set minus digit
-58           BIE    PLUSKEY ; clear condition flag?
+55           AAKA   EXP_S5 ; negate exponent
+56           BIE    MAINLOOP ; if already neg, fall through subtract
+57  SETNEG   AAKA   MANT_S5 ; negate mantissa
+58           BIE    PLUSKEY ; clear condition flag
 59  PLUSKEY  TFA    UP_LOW ; alt-PLUS is SIN
 60           BINE   SINKEY
-61  ADDSUB   AKC    DIGIT ; Add A and C. clear C flag? sign?
+61  ADDSUB   AKC    DIGIT ; Clear C DIGIT
 62           ACKB   ALL ; copy C to B
 63           ABAC   EXP ; add exponents into C
-64           BIE    LABEL65 ; why?
-65  LABEL65  ABAC   EXP_S ; add exponent signs
-66           SCKC   EXP_S ; subtract 5 from sign
-67           BIE    LABEL72 ; signs were different
+64           BIE    CLRCC ; Clear condition code
+65  CLRCC    ABAC   EXP_S5 ; add exponent signs
+66           SCKC   EXP_S5 ; subtract 5 from sign
+67           BIE    EXPSNES ; signs were different
 68           CAB    EXP ; compare exponents
-69           BIE    LABEL71 ; same
-70           EXAB   ALL
-71  LABEL71  SABC   EXP ; difference in exponents
-72  LABEL72  CAK    EXP_S
-73           BINE   LABEL75
-74           EXAB   ALL
-75  LABEL75  CAK    MANT1
+69           BIE    EXPAGE ; branch >=
+70           EXAB   ALL ; switch arguments so A EXP > B EXP
+71  EXPAGE   SABC   EXP ; same sign - subtract exponents into C
+72  EXPSNES  CAK    EXP_S5 ; Test A exponent sign
+73           BINE   AEXPPOS ; branch on borrow, A exp sign == 0
+74           EXAB   ALL ; switch arguments so A EXP > B EXP
+75  AEXPPOS  CAK    MANT1 ; what is MANT1?
 76           BIE    BSHIFT2
 77           EXAB   ALL
-78  BSHIFT2  SCKC   EXP1 ; shift B by difference in exponents to line up
+78  BSHIFT2  SCKC   EXP1 ; shift B by difference in exponents (C) to line up
 79           BINE   DONE2
 80           SRLB   MANT
-81           BIE    BSHIFT2
-82  DONE2    ABAC   MANT_S ; add signs and subtract 5
-83           SCKC   MANT_S
-84           BIE    LABEL89 ; signs different
-85  EXLOOP   AABA   MANT ; add mantissas
-86           BIE    WRAPUP ; branch if no overflow
-87           EXAB   MANT ; handle overflow
-88           EXAB   MANT_S
-89  LABEL89  SABA   MANT
-90           BINE   EXLOOP
-91           BIE    WRAPUP ; BET
-92  LABEL92  CAB    EXP
-93           BIE    LABEL95
-94           EXAB   MASK9
-95  LABEL95  SABA   EXP
-96           BIE    LABEL114 ; BET - no borrow?
+81           BIE    BSHIFT2 ; branch every time
+82  DONE2    ABAC   MANT_S5 ; add mantissa signs and subtract 5
+83           SCKC   MANT_S5
+84           BIE    SUBTR ; signs different
+85  TRYADD   AABA   MANT ; add mantissas, or restore A if did SUBTR
+86           BIE    WRAPUP ; branch if no overflow, i.e. did add
+87           EXAB   MANT ; failed subtract: swap A and B and try again.
+88           EXAB   MANT_S5
+89  SUBTR    SABA   MANT ; subtract mantissa
+90           BINE   TRYADD ; A was smaller than B: try again
+91           BIE    WRAPUP ; branch every time, success
+92  SIGNSNE  CAB    EXP ; compare EXP signs
+93           BIE    LABEL95 ; branch A >= B
+94           EXAB   MASK9 ; swap
+95  LABEL95  SABA   EXP ; subtract EXPs
+96           BIE    EXPSDONE ; branch every time
 97  DIVKEY   TFA    UP_LOW ; entry point for DIV
 98           BINE   TANKEY ; alt-DIV is TAN
 99           SFA    COS_TAN ; why set COS? Doesn't make sense
 100 LABEL100 SFA    RET1FLAG ; 'subroutine call' flag
 101          BIE    WRAPUP ; BET
 102 RET1     ZFA    RET1FLAG ; RET1FLAG means return here
-103          AAKA   EXP_S
+103          AAKA   EXP_S5
 104          BIE    MULTKEY ; clear cc
 105 MULTKEY  TFA    UP_LOW ; alt-MULT is LOG
 106          BINE   LOGKEY
-107          AKC    DIGIT
-108          ACKB   ALL
+107          AKC    DIGIT ; clear C DIGIT, whatever that is
+108          ACKB   ALL ; copy C to B
 109          EXAB   MANT
-110          ABAC   EXP_S
-111          SCKC   EXP_S
-112          BIE    LABEL92
-113          AABA   EXP
-114 LABEL114 AABA   MANT_S
-115          BIE    LABEL116 ; clear before test
-116 LABEL116 TFA    COS_TAN
+110          ABAC   EXP_S5
+111          SCKC   EXP_S5
+112          BIE    SIGNSNE ; branch if signs different
+113          AABA   EXP ; add exponents
+114 EXPSDONE AABA   MANT_S5 ; xor signs
+115          BIE    CLRCC2 ; clear before test
+116 CLRCC2   TFA    COS_TAN
 117 LABEL117 AKA    MANT
 118          BINE   LABEL279 ; branch if COS or TAN
 119 MLTLOOP1 SRLA   MANT ; multiply B * C
@@ -208,37 +188,37 @@ a9876543210 :S value
 126          CCK    MANT1
 127          BIE    MLTLOOP1 ; loop if not done
 128          TFA    LOW
-129          BINE   LABEL308 ; Return to LABEL308 if LOW flag set (ANTILOG)
+129          BINE   ALOGRET ; Return to LABEL308 if LOW flag set (ANTILOG)
 130 WRAPUP   CAK    MANT1 ; Test if mantissa is < 1
 131          BINE   START ; if mantissa is 0, reset
 132 MANTSHL  CAK    DIGIT1 ; Loop to left-align mantissa
 133          BIE    MANTOK ; Branch if mantissa aligned
 134          SLLA   MANT ; Put mantissa back into place
-135          CAK    EXP_S ; Check sign
+135          CAK    EXP_S5 ; Check sign
 136          BIE    MANTNEG ; Branch if negative
 137          SAKA   EXP1 ; Decrement exponent
 138          BIE    LABEL141 ; Branch if no borrow
-139          AKA    EXP_S ; Set exponent sign
+139          AKA    EXP_S5 ; Set exponent sign
 140          AKA    EXP1 ; Set exponent to 1
 141 LABEL141 SAKA   EXP1 ; Decrement exponent
 142 MANTNEG  AAKA   EXP1 ; Increment exponent
 143          BIE    MANTSHL ; first will clear flag
 144          BIE    MANTSHL ; BET
 145 MANTOK   SRLA   MANT
-146          CAK    EXP_S ; Test exponent sign
+146          CAK    EXP_S5 ; Test exponent sign
 147          BINE   EXPPOS
 148          SAKA   EXP1 ; Decrement exponent
 149          SAKA   EXP1 ; Decrement exponent
 150 EXPPOS   AAKA   EXP1 ; Increment exponent
-151          BIE    LABEL152 ; clear condition
-152 LABEL152 TFA    RET1FLAG ; Subroutine return?
+151          BIE    CLRCC1 ; clear condition
+152 CLRCC1   TFA    RET1FLAG ; Subroutine return?
 153          BINE   RET1 ; return to RET1 if RET1FLAG set
 154          ZFB    ALL ; Clear B
 155          SFB    FLAG6B ; Set op done flag?
 156          ZFA    ALL ; Clear A flags
 157          CAK    EXP1 ; Is exponent zero (< 1)
 158          BIE    EXPPOS2
-159 LABEL159 AAKA   EXP_S ; Flip sign
+159 LABEL159 AAKA   EXP_S5 ; Flip sign
 160          BIE    LABEL159 ; Branch if sign was clear before
 161 EXPPOS2  AAKC   ALL ; Copy A to C
 162          BIE    MAINLOOP ; BET
@@ -293,7 +273,7 @@ a9876543210 :S value
 211          BINE   ISCOS ; branch if COS
 212          CAB    MANT ; must be SIN
 213          BIE    TRGLOOP2
-214          BIE    TRIG2
+214          BIE    TRIG2 ; Branch every time
 215 ISCOS    CAK    MANT1 ; COS
 216          EXAB   MANT ; compare C-A the hard way
 217          CCB    MANT
@@ -321,7 +301,7 @@ a9876543210 :S value
 239          BIE    LOG
 240 ANTILOG  CAK    EXP1 ; antilog - loop
 241          BINE   LABEL248
-242          CAK    EXP_S
+242          CAK    EXP_S5
 243          BINE   LABEL247
 244          SRLA   MANT
 245          SAKA   EXP1
@@ -338,7 +318,7 @@ a9876543210 :S value
 256          SCBC   MANT ; C -= C / 100
 257          TFB    NEWEXP
 258          BINE   ALOGLOOP
-259          ACKC   MASK9A ; Count number of iterations
+259          ACKC   MASK9 ; Count number of iterations
 260          CCK    MASK11 ; C vs 100000
 261          BIE    LOGLOOP ; Loop if >=
 262          SCBB   MASK9 ; Left over bit from B is .15
@@ -387,9 +367,9 @@ a9876543210 :S value
 305          SABA   MANT
 306          EXAB   MANT
 307          BIE    LABEL117 ; Sub call to multiply by 229.15
-308 LABEL308 SRLA   MANT
+308 ALOGRET  SRLA   MANT
 309          SFB    NEWEXP
-310          BIE    LOG ; ? What is condition here?
+310          BIE    LOG ; Branch every time
 311 ALOGLOOP SAKA   MANTD1
 312          BIE    LOGLOOP
 313          AAKA   MANTD1
@@ -398,4 +378,4 @@ a9876543210 :S value
 316          ABCC   MANT
 317          EXAB   MANT
 318          ZFA    UP_LOW
-319          BINE   LABEL278 ; isn't flag zero after ZFA?? Maybe still NE from ABCC?
+319          BINE   LABEL278 ; branch every time

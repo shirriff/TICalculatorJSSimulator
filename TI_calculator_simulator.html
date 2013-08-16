@@ -448,7 +448,7 @@ Additional code handles constant operations, a more advanced feature than you'd 
 <p>
 It's interesting to watch the digits bounce back and forth, even for simple computations. There's a lot more happening in a calculator and more programming involved than you might think.
 <p>
-The simulator will lock up in a few cases, such as overflow. I think these bugs are in the source code, not the simulator. The source code from the patent is slightly different from the code that was shipped in real calculators, so some bugs may have been fixed.
+After a divide by zero or overflow, the calculator will lock up until you hit Clear. I thought earlier that there was a bug in the original source code that kept Clear from working, but it turns out that the Clear button is actually wired in the calculator to the hardware reset, rather than being implemented in the code. I added this reset feature to the simulator and Clear now works.
 <h4>Making a scientific calculator from this chip</h4>
 The most amazing thing about this chip is that the Sinclair company took this chip with barely enough ROM to do four-function math, and reprogrammed it into a scientific calculator with trig, inverse trig, exponentials, and logs. The resulting <a href="http://en.wikipedia.org/wiki/Sinclair_Scientific">Sinclair Scientific</a> calculator became popular due to its low cost.
 <p>

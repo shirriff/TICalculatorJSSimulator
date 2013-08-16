@@ -16,6 +16,12 @@ var Keygrid = function(elem, model, keys) {
 
   this.update = function(fast) {
     model.keyStrobe = 0;
+    if (model.keyPressed == 'C') {
+      // Clear button does a hardware reset. Button at KO-D1
+      model.address = 0;
+      model.keyPressed = '';
+      return;
+    }
     if (fast) {
       // Skip the graphics and just check the keyStrobe
       for (var row = 0; row < 3; row++) {

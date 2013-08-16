@@ -483,25 +483,25 @@ This file holds unittests for cpu.js, based on qunit.
 
     test( "AKCN-nokey", function() { // Add constant until key
       var keygrid = new Keygrid(document.getElementById("keygrid"), model, keys);
-      model.rom[0x42] = AKCN | 11; // Mask is top 9 digits
-      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2];
+      model.rom[0x42] = AKCN | 2; // Mask is 1 in 3rd digit from left.
+      model.a = [1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2];
       equal( model.dActive, 1);
-      for (var i = 2; i <= 10; i++) {
+      for (var i = 0; i < 9; i++) {
         keygrid.update();
         equal( model.keyStrobe, 0, 'keyStrobe');
         cpu.step();
         equal( model.address, 0x42, 'address');
         equal( model.cc, 0, 'cc');
-        equal( model.ccMeaning, 'no overflow', 'ccMeaning');
-        deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 9, i - 2, 1, 2]);
+        equal( model.ccMeaning, '', 'ccMeaning');
+        deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, i + 1, 1, 2]);
       }
       keygrid.update();
       cpu.step();
-      equal( model.address, 0x44); // Skip an instruction
+      equal( model.address, 0x43);
       equal( model.cc, 1, 'cc');
       equal( model.ccMeaning, 'overflow', 'ccMeaning');
       // A should be incremented by 10
-      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 9, 9, 1, 2]);
+      deepEqual( model.a, [1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2]);
     });
 
     test( "AKCN-key", function() { // scan for key press
@@ -517,7 +517,7 @@ This file holds unittests for cpu.js, based on qunit.
       cpu.step();
       equal( model.address, 0x42, 'address');
       equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, 'no overflow', 'ccMeaning');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [1, 9, 3, 4, 5, 6, 7, 9, 0, 1, 2], 'a advanced');
 
       // Key in D2, address advances
@@ -526,7 +526,7 @@ This file holds unittests for cpu.js, based on qunit.
       cpu.step();
       equal( model.address, 0x43);
       equal( model.cc, 0, 'cc');
-      equal( model.ccMeaning, 'no overflow', 'ccMeaning');
+      equal( model.ccMeaning, '', 'ccMeaning');
       deepEqual( model.a, [1, 9, 3, 4, 5, 6, 7, 9, 1, 1, 2], 'a advanced');
     });
 

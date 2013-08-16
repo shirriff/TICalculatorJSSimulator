@@ -131,22 +131,15 @@ var Cpu = function(model, masks, sinclair) {
 	  break;
 	case 26: // AKCN: A+K -> A until key down on N or D11 [sic]
 	  // Patent says sets condition if key down, but real behavior
-	  // is to set condition if overflow (i.e. no key down)
+	  // is to set condition if addition overflows (i.e. no key down)
 	  this.add(this.model.a, this.getMask(), this.model.a);
 	  if (this.model.keyStrobe == 'KN') {
-	    this.model.cc = 0;
-	    this.model.ccMeaning = 'no overflow';
 	    // Advance to next instruction
 	  } else if (this.model.dActive != 10) {
 	    // Hold at current instruction and continue scan
 	    nextAddress = this.model.address;
-	    this.model.cc = 0;
-	    this.model.ccMeaning = 'no overflow';
 	  } else {
-	    // For state d10, skip next instruction? Fixes code bug?
-	    nextAddress = this.model.address + 2;
-	    this.model.cc = 1;
-	    this.model.ccMeaning = 'overflow';
+	    // For state d10, fall through
 	  }
 	  break;
 	case 27:

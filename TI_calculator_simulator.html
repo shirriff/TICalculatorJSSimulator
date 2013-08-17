@@ -219,7 +219,7 @@ $(document).ready(function() {
     '.': [xbotvals[1], yvals[4]],
     '=': [xbotvals[2], yvals[4]]};
   var keygrid = new Keygrid($("#keygrid")[0], model, keys);
-  var calcImage = new CalcImage($("#calcImage"), model, keypos);
+  var calcImage = new CalcImage($("#calcImage"), model, keypos, 329, 600 /* image original dimensions */);
   var registers = new Registers($("#registers")[0], model);
   var display = new Display($("#display"), model);
   var display2 = new Display($("#calcDisplay"), model);
@@ -287,7 +287,7 @@ Ken Shirriff's blog
 <p>
 <canvas id="display" width="405" height="70" style="padding-left: 80px;"></canvas>
 <br/>
-<canvas id="keygrid" width="405" height="140" style="margin-left: 80px"></canvas>
+<canvas id="keygrid" width="405" height="95" style="margin-left: 80px"></canvas>
 <table id="registers">
   <tr><th>D</th>
     <td id="registers-d10"></td>

@@ -4,14 +4,14 @@
 //
 // This file implements the clickable image of the calculator.
 
-var CalcImage = function(elem, model, keypos) {
+var CalcImage = function(elem, model, keypos, origXSize, origYSize) {
   this.model = model;
 
   // Return the key value or null associated with a position
   this.findKey = function(x, y) {
     // Scale coordinates to original image dimensions
-    x = x / this.width * 329;
-    y = y / this.height * 600;
+    x = x / this.width * origXSize;
+    y = y / this.height * origYSize;
     for (var k in keypos) {
       if (keypos[k][0][0] <= x && keypos[k][0][1] >= x && keypos[k][1][0] <= y && keypos[k][1][1] >= y) {
       return k;
@@ -29,7 +29,7 @@ var CalcImage = function(elem, model, keypos) {
     var x = e.pageX - parentOffset.left;
     var y = e.pageY - parentOffset.top;
     var k = that.findKey(x, y);
-    console.log(k);
+    console.log(x + ' ' + y);
     if (that.callback) {
       that.callback(k);
     }

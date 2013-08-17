@@ -151,8 +151,8 @@ Based on patent US3934233 and visual 6502 reverse engineering
   #sourceWindow {
     font-size: 14px;
     line-height: 1em;
-    width: 500px;
-    height: 336px;
+    width: 550px;
+    height: 360px;
     border: 1px solid #ddd;
     font-family: courier, fixed;
     font-size: 12px;
@@ -202,13 +202,11 @@ $(document).ready(function() {
     ['C', '\u25bc' /* down */, '+', '-', '\u00f7' /* div */, '\u00d7' /* mult */, '\u25b2' /* up */, 'E', '0', ''],
     ['', '', '', '', '', '', '', '', '', '']];
   // Initialize the positions of the keys in the image
-  var xvals = [[45, 92], [108, 154], [171, 217], [233, 280]];
-  var xbotvals = [[45, 125], [139, 187], [202, 280]];
-  var yvals = [[254, 303], [316, 365], [379, 427], [441, 490], [503, 552]];
+  var xvals = [[30, 88], [112, 166], [192, 246], [270, 326]];
+  var yvals = [[400, 438], [478, 516], [556, 594], [636, 674], [712, 750]];
   var keypos = {
     '\u25b2' /* up */: [xvals[0], yvals[0]],
     'C': [xvals[1], yvals[0]],
-    '\u25bc' /* down */: [xvals[2], yvals[0]],
     '7': [xvals[0], yvals[1]],
     '8': [xvals[1], yvals[1]],
     '9': [xvals[2], yvals[1]],
@@ -221,11 +219,12 @@ $(document).ready(function() {
     '2': [xvals[1], yvals[3]],
     '3': [xvals[2], yvals[3]],
     '+': [xvals[3], yvals[3]],
-    '0': [xbotvals[0], yvals[4]],
-    'E': [xbotvals[1], yvals[4]],
-    '-': [xbotvals[2], yvals[4]]};
+    '\u25bc' /* down */: [xvals[0], yvals[4]],
+    '0': [xvals[1], yvals[4]],
+    'E': [xvals[2], yvals[4]],
+    '-': [xvals[3], yvals[4]]};
   var keygrid = new Keygrid($("#keygrid")[0], model, keys);
-  var calcImage = new CalcImage($("#calcImage"), model, keypos);
+  var calcImage = new CalcImage($("#calcImage"), model, keypos, 360, 800);
   var registers = new Registers($("#registers")[0], model);
   var display = new Display($("#display"), model);
   var display2 = new Display($("#calcDisplay"), model, 1 /* sinclair */);
@@ -274,10 +273,10 @@ Ken Shirriff's blog
   <h3>Reverse-engineering and simulating the Sinclair Scientific calculator (under development, not for release)</h3>
   <p>
 <div id="calcImageDiv">
-  <img id="calcImage" src="sinclair_placeholder.jpg" width=220 height=400></img>
-  <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 88px; left: 32px;"></canvas>
+  <img id="calcImage" src="virtual_sinclair_scientific.png" width=180 height=400></img>
+  <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 27px; left: 16px;"></canvas>
 </div>
-<div style="margin-left: 240px; ">
+<div style="margin-left: 218px; ">
   <button id="playButton" title="run" style="background:url(http://files.righto.com/calculator/play.png) no-repeat 2px 2px;"></button>
   <button id="stopButton" title="stop" style="background:url(http://files.righto.com/calculator/stop.png) no-repeat 2px 2px;"></button>
   <button id="stepButton" title="step" style="background:url(http://files.righto.com/calculator/step.png) no-repeat 2px 2px;"></button>
@@ -294,7 +293,7 @@ Ken Shirriff's blog
 <p>
 <canvas id="display" width="405" height="70" style="padding-left: 80px;"></canvas>
 <br/>
-<canvas id="keygrid" width="405" height="140" style="margin-left: 80px"></canvas>
+<canvas id="keygrid" width="405" height="95" style="margin-left: 80px"></canvas>
 <table id="registers">
   <tr><th>D</th>
     <td id="registers-d10"></td>

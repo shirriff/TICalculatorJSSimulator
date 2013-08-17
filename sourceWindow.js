@@ -16,6 +16,7 @@ var SourceWindow = function(elem, model, sourceCode) {
       var addr = ('000' + i.toString(16)).substr(-3);
       var parts = sourceCode[i].split('; ');
       var instr = parts[0];
+      instr = (instr + '                  ').slice(0, 14);
       var comment = parts.length > 1 ? parts[1] : null
       var line = '<div id="s' + i + '">' +
 	'<span class="instr">' + instr + '</span>  ';

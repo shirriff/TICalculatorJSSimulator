@@ -226,7 +226,7 @@ $(document).ready(function() {
     'POWER': [[236, 284], [384, 430]]};
   var keygrid = new Keygrid($("#keygrid")[0], model, keys);
   var calcImage = new CalcImage($("#calcImage"), model, keypos, 360, 800,
-      "images/virtual_sinclair_scientific_off.png");
+      "virtual_sinclair_scientific_off.png");
   var registers = new Registers($("#registers")[0], model);
   var display = new Display($("#display"), model);
   var display2 = new Display($("#calcDisplay"), model, 1 /* sinclair */);
@@ -275,7 +275,7 @@ Ken Shirriff's blog
   <h3>Reverse-engineering and simulating the Sinclair Scientific calculator (under development, not for release)</h3>
   <p>
 <div id="calcImageDiv">
-  <img id="calcImage" src="images/virtual_sinclair_scientific.png" width=180 height=400></img>
+  <img id="calcImage" src="virtual_sinclair_scientific.png" width=180 height=400></img>
   <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 27px; left: 16px;"></canvas>
 </div>
 <div style="margin-left: 218px; ">

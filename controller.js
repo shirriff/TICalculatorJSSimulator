@@ -16,9 +16,24 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   this.registers = registers;
   this.autospeed = 1;
   this.calcImage.callback = function(key) {
+    if (key == 'POWER') {
+      if (model.power == 1) {
+	model.display = 0;
+	model.address = 0;
+	stopButton.click();
+	model.power = 0;
+      } else {
+	model.power = 1;
+	model.display = 1;
+	model.address = 0;
+	playButton.click();
+      }
+      this.updatePower();
+      return;
+    }
     if (model.keyPressed == key) {
       // toggle off
-      model.keyPressed = null;
+      model.keyPressed = '';
     } else {
       model.keyPressed = key;
     }
@@ -28,18 +43,26 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   model.running = 0;
   var that = this;
   playButton.click(function() {
+      if (model.power == 0) {
+        return;
+      }
       playButton.hide();
       stopButton.show();
       model.running = 1;
       that.update();
       });
   stopButton.click(function() {
+      if (model.power == 0) {
+        return;
+      }
       stopButton.hide();
       playButton.show();
       model.running = 0;
       });
   stepButton.click(function() {
-      if (model.running) {
+      if (model.power == 0) {
+        return;
+      } else if (model.running) {
 	stopButton.hide();
 	playButton.show();
 	model.running = 0;

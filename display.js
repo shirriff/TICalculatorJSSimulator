@@ -63,15 +63,14 @@ var Display = function(elem, model, sinclair) {
     this.context.transform(this.width / 9, 0, 0, this.height / 2, 0, 0);
     this.context.fillStyle = 'black';
     this.context.fillRect(0, 0, 9, 2);
-    if (!model.display) {
-      return;
-    }
-    this.context.beginPath();
-    for (var i = 0; i < str.length; i++) {
-      this.writeSymbol(str[i], i);
-    }
-    if (dpt >= 0) {
-      this.writeDecimal(dpt);
+    if (model.display) {
+      this.context.beginPath();
+      for (var i = 0; i < str.length; i++) {
+	this.writeSymbol(str[i], i);
+      }
+      if (dpt >= 0) {
+	this.writeDecimal(dpt);
+      }
     }
     this.context.restore();
   };

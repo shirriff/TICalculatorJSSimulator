@@ -31,6 +31,9 @@ var SourceWindow = function(elem, model, sourceCode) {
 
   this.update = function() {
     $('#s' + highlighted).removeClass('highlight');
+    if (!model.power) {
+      return;
+    }
     $('#s' + model.address).addClass('highlight');
     highlighted = model.address;
 

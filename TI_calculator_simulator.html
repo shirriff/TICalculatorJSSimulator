@@ -217,7 +217,8 @@ $(document).ready(function() {
     '+': [xvals[3], yvals[3]],
     '0': [xbotvals[0], yvals[4]],
     '.': [xbotvals[1], yvals[4]],
-    '=': [xbotvals[2], yvals[4]]};
+    '=': [xbotvals[2], yvals[4]],
+    'POWER': [[242, 260], [261, 288]]};
   var keygrid = new Keygrid($("#keygrid")[0], model, keys);
   var calcImage = new CalcImage($("#calcImage"), model, keypos, 329, 600 /* image original dimensions */);
   var registers = new Registers($("#registers")[0], model);

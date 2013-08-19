@@ -58,6 +58,7 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
       stopButton.hide();
       playButton.show();
       model.running = 0;
+      that.autospeed = 1;
       });
   stepButton.click(function() {
       if (model.power == 0) {
@@ -101,8 +102,12 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   updateInt();
 
   this.update = function() {
-    var iterations = 1;
-    if (model.speed == 'fast') {
+    var iterations;
+    if (model.speed == 'slow' || !model.running) {
+      // Slow or single-stepping.
+      iterations = 1;
+    } else if (model.speed == 'fast') {
+      // Do 100 operations between GUI updates
       iterations = 100;
     } else if (model.speed == 'auto') {
       // The idea of autospeed is to do the first 200 ops at a moderate pace
@@ -113,8 +118,6 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
 	iterations = that.autospeed / 10 - 18;
       }
       that.autospeed++;
-    } else if (model.speed == 'slow') {
-      iterations = 1;
     }
 
     for (var i = 0; i < iterations; i++) {

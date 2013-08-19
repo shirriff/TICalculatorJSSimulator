@@ -1,63 +1,63 @@
-Notes and analysis of the Sinclair Scientific ROM
-
-EXP: exponent mask
-DIGIT1, DIGIT: used with AKCN increment. MASK3 is 1. Don't overlap with 4.
-MANT: the A value?
-EXP_S5: negative exponent
-NEWEXP: E pressed, entering a new exponent
-
-FLAGS:
-A
-0 ALL
-1 (S9) FLAG1A
-3 (S5) UP_LOW
-5 (S10) LOW
-7 (S8) TAN
-11 (S4) COS_TAN
-
-B
-0 ALL
-1 (S9) EMODE
-6 (S6S7) FLAG6B ??two bits??
-7 (S8) EMODE2
-
-Constants
-0: ....
-1: .*.* 5
-2: ....
-3: ...* 1
-4: ....
-5: ...* 1
-6: ...* 1
-7: .*.* 5
-8: ....
-9: ...* 1
-a: ...* 1
-b: ...* 1
-c: .*.* 5
-d: ...* 1
-e: .*.. 4
-f: ....
-
-Masks:
- S value
-a9876543210
-00000000000 mask 0 ALL
-5           mask 1 MANT_S5
-  00        mask 2 EXP
-    1       mask 3 DIGIT1
-    0000000 mask 4 MANT
-          1 mask 5 MANTLOW1
-  01        mask 6 EXP1
- 5          mask 7 EXP_S5
-000000      mask 8 MASK8
-0001        mask 9 MASK9
-    0000001 mask a MANT1
-     1      mask b MASK11
-    00005   mask c MANTD5
-    00001   mask d MANTD1
-    4       mask e DIGIT4
-    0       mask f DIGIT
+; Notes and analysis of the Sinclair Scientific ROM
+; 
+; EXP: exponent mask
+; DIGIT1, DIGIT: used with AKCN increment. MASK3 is 1. Don't overlap with 4.
+; MANT: the A value?
+; EXP_S5: negative exponent
+; NEWEXP: E pressed, entering a new exponent
+; 
+; FLAGS:
+; A
+; 0 ALL
+; 1 (S9) FLAG1A
+; 3 (S5) UP_LOW
+; 5 (S10) LOW
+; 7 (S8) TAN
+; 11 (S4) COS_TAN
+; 
+; B
+; 0 ALL
+; 1 (S9) EMODE
+; 6 (S6S7) FLAG6B ??two bits??
+; 7 (S8) EMODE2
+; 
+; Constants
+; 0: ....
+; 1: .*.* 5
+; 2: ....
+; 3: ...* 1
+; 4: ....
+; 5: ...* 1
+; 6: ...* 1
+; 7: .*.* 5
+; 8: ....
+; 9: ...* 1
+; a: ...* 1
+; b: ...* 1
+; c: .*.* 5
+; d: ...* 1
+; e: .*.. 4
+; f: ....
+; 
+; Masks:
+;  S value
+; a9876543210
+; 00000000000 mask 0 ALL
+; 5           mask 1 MANT_S5
+;   00        mask 2 EXP
+;     1       mask 3 DIGIT1
+;     0000000 mask 4 MANT
+;           1 mask 5 MANTLOW1
+;   01        mask 6 EXP1
+;  5          mask 7 EXP_S5
+; 000000      mask 8 TOPSTUFF
+; 0001        mask 9 EXPSGNS1
+;     0000001 mask a MANT1
+;      1      mask b MASKA1
+;     00005   mask c MANTD5
+;     00001   mask d MANTD1
+;     4       mask e DIGIT4
+;     0       mask f DIGIT
 
 0   START    ZFA    ALL ; init - clear flags
 1            ZFB    ALL
@@ -85,7 +85,7 @@ a9876543210
 23           EXAB   ALL ; save A in B, A=0
 24           AKCN   DIGIT1 ; count column into A
 25           EXAB   ALL ; restore A, B holds count
-26           BINE   MAINLOOP ; C pressed, not in row KN
+26           BINE   MAINLOOP ; branch if nothing pressed
 27  ZEROKEY  TFB    EMODE ; B holds key 0-9
 28           BINE   EDIGIT
 29           TFB    FLAG6B ; if FLAG6B...
@@ -153,16 +153,16 @@ a9876543210
 91           BIE    WRAPUP ; branch every time, success
 92  SIGNSNE  CAB    EXP ; compare EXP signs
 93           BIE    LABEL95 ; branch A >= B
-94           EXAB   MASK9 ; swap
+94           EXAB   EXPSGNS1 ; swap
 95  LABEL95  SABA   EXP ; subtract EXPs
 96           BIE    EXPSDONE ; branch every time
 97  DIVKEY   TFA    UP_LOW ; entry point for DIV
 98           BINE   TANKEY ; alt-DIV is TAN
 99           SFA    COS_TAN ; why set COS? Doesn't make sense
 100 LABEL100 SFA    RET1FLAG ; 'subroutine call' flag
-101          BIE    WRAPUP ; BET
-102 RET1     ZFA    RET1FLAG ; RET1FLAG means return here
-103          AAKA   EXP_S5
+101          BIE    WRAPUP ; 'Subroutine call' to align A
+102 RET1     ZFA    RET1FLAG ; 'Return' to RET1
+103          AAKA   EXP_S5 ; toggle EXP sign
 104          BIE    MULTKEY ; clear cc
 105 MULTKEY  TFA    UP_LOW ; alt-MULT is LOG
 106          BINE   LOGKEY
@@ -228,42 +228,42 @@ a9876543210
 166          BINE   DONESHFT
 167          SRLA   MANT
 168          BIE    SINKEY
-169 DONESHFT AKA    MASK9 ; ?
-170          SAKA   MASK9
+169 DONESHFT AKA    EXPSGNS1 ; clear signs
+170          SAKA   EXPSGNS1 ; EXP = 0
 171          AKC    ALL ; clear C
-172          TFA    LOW
-173          BIE    LABEL180
-174          TFA    TAN
-175          BIE    LABEL179
-176          AAKC   ALL
-177          AKB    MASK11
-178          BIE    TRGLOOP2
-179 LABEL179 AAKA   MANTD1
-180 LABEL180 AKB    MANTD5 ; add 5 to B mantissa
-181          SRLB   MANT ; and shift
-182          ACKC   MASK11 ; increment C
-183 TRIGLOOP SAKA   MANTD1 ; main loop: iterate A times
+172          TFA    LOW ; check for ARC-
+173          BIE    NORMOP ; branch if no
+174          TFA    TAN ; check ARCTAN?
+175          BIE    ASINCOS ; branch if no
+176          AAKC   ALL ; doing ARCTAN
+177          AKB    MASKA1
+178          BIE    TRGLOOP2 ; branch every time
+179 ASINCOS  AAKA   MANTD1
+180 NORMOP   AKB    MANTD5 ; B = .0005 (current SIN)
+181          SRLB   MANT
+182          ACKC   MASKA1 ; C += 1 (current COS)
+183 TRIGLOOP SAKA   MANTD1 ; rotate A times, by .001 rad
 184          BINE   TRIGDONE ; branch on borrow - done
-185 TRGLOOP2 SLLC   ALL ;
+185 TRGLOOP2 SLLC   ALL ; shift C to prepare for add
 186          SLLC   ALL
 187          SLLC   ALL
-188          ACKC   MANTD5 ; round C up
-189          SCBC   ALL ; C-B -> C
-190          SRLC   ALL ; shift and add to
+188          ACKC   MANTD5 ; C=C-B/1000 (rounded)
+189          SCBC   ALL
+190          SRLC   ALL ; restore C
 191          SRLC   ALL
 192          SRLC   ALL
-193          SLLB   ALL ; shift B left 3
+193          SLLB   ALL ; shift B to prepare for add
 194          SLLB   ALL
 195          SLLB   ALL
-196          ACKC   MANTD5 ; round C up
-197          ABCB   ALL ; B+C -> B
+196          ACKC   MANTD5 ; B=B+C/1000 (rounded)
+197          ABCB   ALL
 198          SCKC   MANTD5 ; restore C
-199          SRLB   ALL ; shift B right 3
+199          SRLB   ALL
 200          SRLB   ALL
 201          SRLB   ALL
 202          TFA    LOW ; ARC-op?
 203          BIE    TRIGLOOP ; no: branch
-204          AAKA   MASK9 ; ARC-op
+204          AAKA   EXPSGNS1 ; ARC-op
 205          TFA    TAN
 206          BIE    ISSINCOS ; branch if SIN/COS
 207          CCK    DIGIT1 ; doing TAN, compare C to K
@@ -286,16 +286,16 @@ a9876543210
 224          SRLA   ALL
 225          BIE    WRAPUP ; done if A zero
 226 TRIGDONE TFA    TAN
-227          BIE    LABEL233
-228          ACKA   ALL ; doing TAN
-229          ABOC   ALL
-230          AKB    ALL
+227          BIE    SINCOS
+228          ACKA   ALL ; doing TAN: A=C (denom)
+229          ABOC   ALL ; C=B (numer)
+230          AKB    ALL ; B=0
 231          ZFA    UP_LOW
-232          BIE    LABEL100 ; do division??? what is condition here?
-233 LABEL233 TFA    COS_TAN
-234          BIE    LABEL236 ; branch for SIN
-235          ACKB   ALL ; COS: return C, rounded
-236 LABEL236 EXAB   ALL ; SIN: return B
+232          BIE    LABEL100 ; branch every time
+233 SINCOS   TFA    COS_TAN
+234          BIE    SIN ; branch for SIN
+235          ACKB   ALL ; COS: return C via B
+236 SIN      EXAB   ALL ; SIN: return B
 237          BIE    WRAPUP ; BET (no overflow)
 238 LOGKEY   TFA    LOW ; low-MULT is antilog
 239          BIE    LOG
@@ -308,8 +308,8 @@ a9876543210
 246          BIE    ANTILOG
 247 LABEL247 SLLA   MANT
 248 LABEL248 AKA    EXP
-249          SLLA   MASK8
-250          SLLA   MASK8
+249          SLLA   TOPSTUFF
+250          SLLA   TOPSTUFF
 251 LOG      AKC    ALL ; This loop computes log(.1)/log(.99) = 229
 252          ACKC   DIGIT1 ; C = 1000000
 253 LOGLOOP  ACKB   MANT ; Compute log B*.99^C until < .1
@@ -318,12 +318,12 @@ a9876543210
 256          SCBC   MANT ; C -= C / 100
 257          TFB    NEWEXP
 258          BINE   ALOGLOOP
-259          ACKC   MASK9 ; Count number of iterations
-260          CCK    MASK11 ; C vs 100000
+259          ACKC   EXPSGNS1 ; Count number of iterations
+260          CCK    MASKA1 ; C vs 100000
 261          BIE    LOGLOOP ; Loop if >=
-262          SCBB   MASK9 ; Left over bit from B is .15
+262          SCBB   EXPSGNS1 ; Left over bit from B is .15
 263          ABCC   MANT
-264          SCKC   MASK11
+264          SCKC   MASKA1
 265          SRLB   ALL ; Shift 229 into B mantissa
 266          SRLB   ALL
 267          SRLB   ALL
@@ -339,17 +339,17 @@ a9876543210
 277          AAKC   MANT
 278 LABEL278 AKA    MANT ; clear A mant, arg exp still in A
 279 LABEL279 AKA    DIGIT4 ; start digit count at 4, iterate until 10
-280 LOGDIV   CCB    MANT ; Compute C/B: C=-log(arg)/log(.99), B=-1/log(.99) = 229.15
+280 DODIV    CCB    MANT ; Compute C/B into A
 281          BINE   SHIFTDIV ; C-B: branch if not less than
 282          SCBC   MANT ; C -= B
 283          AAKA   MANT1 ; A++
-284          BIE    LOGDIV ; BET
+284          BIE    DODIV ; BET
 285 SHIFTDIV AAKC   DIGIT1 ; shift remainder C left, increase mantissa
 286          BINE   LABEL291 ; so C > B
 287          SLLA   MANT
 288          ACKA   DIGIT
 289          SLLC   MANT
-290          BIE    LOGDIV ; until count hits 10
+290          BIE    DODIV ; until count hits 10
 291 LABEL291 AKA    DIGIT
 292          TFA    UP_LOW ; pick the return target
 293          BINE   LOGSKIP
@@ -363,7 +363,7 @@ a9876543210
 301          BIE    ADDSUB ; BET (clear from AAKC)
 302 ANTILOG  AAKC   MANT
 303          AKA    MANT
-304          AKA    MASK11
+304          AKA    MASKA1
 305          SABA   MANT
 306          EXAB   MANT
 307          BIE    LABEL117 ; Sub call to multiply by 229.15
@@ -374,7 +374,7 @@ a9876543210
 312          BIE    LOGLOOP
 313          AAKA   MANTD1
 314          SLLA   MANT
-315          AAKA   MASK11
+315          AAKA   MASKA1
 316          ABCC   MANT
 317          EXAB   MANT
 318          ZFA    UP_LOW

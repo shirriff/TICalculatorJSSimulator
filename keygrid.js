@@ -64,7 +64,7 @@ var Keygrid = function(elem, model, keys) {
 	context.beginPath();
 	context.rect(XMARGIN + XSPACING * col, YMARGIN + YSPACING * row, BOXSIZE, BOXSIZE);
 	// Highlight pressed key.
-	context.fillStyle = (model.keyPressed && keys[row][col] == model.keyPressed) ? '#aaf' : 'white';
+	context.fillStyle = (model.keyPressed && keys[row][col] == model.keyPressed) ? '#50c6f2' : 'white';
 	context.fill();
 	context.stroke();
 	context.fillStyle = 'black';

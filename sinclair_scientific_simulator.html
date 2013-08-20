@@ -124,16 +124,14 @@ Based on patent US3934233 and visual 6502 reverse engineering
 
   #registers {
     border-collapse: collapse;
-    border-right: 1px solid #ddd;
+    border-left: 1px solid #ddd;
   }
 
   #registers th {
     font-weight: bold;
-    text-align: right;
-    padding-right: 10px;
-    border-right: 1px solid #ddd;
-    max-width: 70px;
-    width: 70px;
+    text-align: left;
+    padding-left: 10px;
+    border-left: 1px solid #ddd;
   }
 
   #registers td {
@@ -145,14 +143,14 @@ Based on patent US3934233 and visual 6502 reverse engineering
   }
 
   .mask {
-    background-color: #fcc;
+    background-color: #addff2;
   }
 
   #sourceWindow {
     font-size: 14px;
     line-height: 1em;
     width: 540px;
-    height: 337px;
+    height: 450px;
     border: 1px solid #ddd;
     font-family: courier, fixed;
     font-size: 12px;
@@ -161,7 +159,8 @@ Based on patent US3934233 and visual 6502 reverse engineering
   }
 
   div#instruction {
-    margin-top: 10px;
+    display: inline-block;
+    margin-left: 19px;
   }
     
   div#sourceWindow div {
@@ -183,7 +182,7 @@ Based on patent US3934233 and visual 6502 reverse engineering
   }
 
   .highlight {
-    background-color: #fcc;
+    background-color: #addff2;
   }
 
   #speed {
@@ -228,12 +227,11 @@ $(document).ready(function() {
   var calcImage = new CalcImage($("#calcImage"), model, keypos, 360, 800,
       "virtual_sinclair_scientific_off.png");
   var registers = new Registers($("#registers")[0], model);
-  var display = new Display($("#display"), model);
-  var display2 = new Display($("#calcDisplay"), model, 1 /* sinclair */);
+  var display = new Display($("#calcDisplay"), model, 1 /* sinclair */);
   var sourceWindow = new SourceWindow($("#sourceWindow"), model, sourceCode);
   var cpu = new Cpu(model, masks, 1 /* sinclair */);
   var instruction = new Instruction($("#instruction"), model);
-  var controller = new Controller(calcImage, model, keygrid, display, display2, sourceWindow, cpu,
+  var controller = new Controller(calcImage, model, keygrid, display, null /* display2 */, sourceWindow, cpu,
     registers, instruction, $("#playButton"), $("#stopButton"), $("#stepButton"));
 
   $("#speed").change(function(e) { model.speed = this.options[this.selectedIndex].id;});
@@ -275,10 +273,12 @@ Ken Shirriff's blog
   <h3>Reverse-engineering and simulating the Sinclair Scientific calculator (under development, not for release)</h3>
   <p>
 <div id="calcImageDiv">
-  <img id="calcImage" src="virtual_sinclair_scientific.png" width=180 height=400></img>
-  <canvas id="calcDisplay" width="150" height="30" style="position: absolute; top: 27px; left: 16px;"></canvas>
+  <img id="calcImage" src="virtual_sinclair_scientific.png" width=225 height=500></img>
+  <canvas id="calcDisplay" width="187" height="38" style="position: absolute; top: 33px; left: 20px;"></canvas>
 </div>
-<div style="margin-left: 218px; ">
+<div style="margin-left: 250px; ">
+  <div id="sourceWindow"></div>
+  <br/>
   <button id="playButton" title="run" style="background:url(http://files.righto.com/calculator/play.png) no-repeat 2px 2px;"></button>
   <button id="stopButton" title="stop" style="background:url(http://files.righto.com/calculator/stop.png) no-repeat 2px 2px;"></button>
   <button id="stepButton" title="step" style="background:url(http://files.righto.com/calculator/step.png) no-repeat 2px 2px;"></button>
@@ -286,18 +286,14 @@ Ken Shirriff's blog
   <option id="auto" selected=1>Autospeed</option>
   <option id="fast">Fast</option>
   </select>
-  <br/>
-  <div id="sourceWindow"></div>
   <div id="instruction"></div>
 </div>
 <div style="clear: both;"></div>
 <p>
 <p>
-<canvas id="display" width="405" height="70" style="padding-left: 78px;"></canvas>
-<br/>
-<canvas id="keygrid" width="405" height="95" style="margin-left: 78px"></canvas>
+<canvas id="keygrid" width="405" height="95" style="margin-left: 0"></canvas>
 <table id="registers">
-  <tr><th>D</th>
+  <tr>
     <td id="registers-d10"></td>
     <td id="registers-d9"></td>
     <td id="registers-d8"></td>
@@ -309,8 +305,9 @@ Ken Shirriff's blog
     <td id="registers-d2"></td>
     <td id="registers-d1"></td>
     <td id="registers-d0"></td>
+    <th>Digit scan</th>
   </tr>
-  <tr><th>A</th>
+  <tr>
     <td id="registers-a10"></td>
     <td id="registers-a9"></td>
     <td id="registers-a8"></td>
@@ -322,8 +319,9 @@ Ken Shirriff's blog
     <td id="registers-a2"></td>
     <td id="registers-a1"></td>
     <td id="registers-a0"></td>
+    <th>A register</th>
   </tr>
-  <tr><th>B</th>
+  <tr>
     <td id="registers-b10"></td>
     <td id="registers-b9"></td>
     <td id="registers-b8"></td>
@@ -335,8 +333,9 @@ Ken Shirriff's blog
     <td id="registers-b2"></td>
     <td id="registers-b1"></td>
     <td id="registers-b0"></td>
+    <th>B register</th>
   </tr>
-  <tr><th>C</th>
+  <tr>
     <td id="registers-c10"></td>
     <td id="registers-c9"></td>
     <td id="registers-c8"></td>
@@ -348,8 +347,9 @@ Ken Shirriff's blog
     <td id="registers-c2"></td>
     <td id="registers-c1"></td>
     <td id="registers-c0"></td>
+    <th>C register</th>
   </tr>
-  <tr><th>AF</th>
+  <tr>
     <td id="registers-af10" title="dpt"></td>
     <td id="registers-af9"></td>
     <td id="registers-af8"></td>
@@ -361,8 +361,9 @@ Ken Shirriff's blog
     <td id="registers-af2" title="op3: operation"></td>
     <td id="registers-af1" title="op2: sub/div"></td>
     <td id="registers-af0" title="op1: mul/div"></td>
+    <th>A flags</th>
   </tr>
-  <tr><th>BF</th>
+  <tr>
     <td id="registers-bf10" title="fd"></td>
     <td id="registers-bf9"></td>
     <td id="registers-bf8"></td>
@@ -374,8 +375,9 @@ Ken Shirriff's blog
     <td id="registers-bf2" title="op3: operation"></td>
     <td id="registers-bf1" title="op2: sub/div"></td>
     <td id="registers-bf0" title="op1: mul/div"></td>
+    <th>B flags</th>
   </tr>
-  <tr><th>MASK/K</th>
+  <tr>
     <td id="registers-m10"></td>
     <td id="registers-m9"></td>
     <td id="registers-m8"></td>
@@ -387,11 +389,16 @@ Ken Shirriff's blog
     <td id="registers-m2"></td>
     <td id="registers-m1"></td>
     <td id="registers-m0"></td>
+    <th>Mask / constant</th>
   </tr>
-  <tr class="cond"><th>Instr</th>
+  </table>
+  <table>
+  <tr class="cond">
+    <th colspan=4>Instr</th>
     <td colspan=4 id="registers-i" style="font-family: courier, fixed"></td>
   </tr>
-  <tr class="cond"><th>Cond</th>
+  <tr class="cond">
+    <th colspan=4>Cond</th>
     <td colspan=4 id="registers-cc"></td>
   </tr>
 </table>

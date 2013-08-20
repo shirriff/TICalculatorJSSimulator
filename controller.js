@@ -88,9 +88,11 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   // Post-cpu updates
   var updateInt = function(skipUpdate) {
     if (!skipUpdate) {
-      keygrid.update(model.idle ? 0 : 1 /* fast */);
+      keygrid.update(model.idle ? 0 : 0 /* fast */);
       display.update();
-      display2.update();
+      if (display2) {
+        display2.update();
+      }
       registers.update();
       instruction.update();
       sourceWindow.update();

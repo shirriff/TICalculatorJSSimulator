@@ -61,6 +61,8 @@ Based on patent US3934233 and visual 6502 reverse engineering
     font:bold 100% Verdana,Sans-Serif;
   }
 
+  code { font-size: 1.5em; }
+
   div.cite {font-size: .8em;.; font-style: italic; color: #888; margin-bottom: 9px;}
 
   .cite a {color: #888 !important;}
@@ -271,6 +273,9 @@ Ken Shirriff's blog
 
 <div class="content">
   <h3>Reverse-engineering and simulating the Sinclair Scientific calculator (under development, not for release)</h3>
+  In a hotel room in Texas in 1974, Clive Sinclair had a problem. He wanted to sell a cheap scientific calculator, but Texas Instrument's calculator chip could barely do four-function math. The chip was programmable, but its ROM only held 320 instructions, just enough for addition, subtraction, multiplication, and division. TI's programmers said it would be impossible to use the chip in a scientific calculator - the chip only had 3 registers, no subroutine stack, no support for multi-digit constants, and didn't even have hardware support for multiplication or division. How could you possibly squeeze any scientific functions in there, let alone eight trig and log operations?
+  <p>
+  Sinclair's programmers went to work and designed new algorithms to fit into 320 instructions. The result was the Sinclar Scientific calculator, which became a huge seller at an inexpensive price. How did they do it? Through reverse engineering, I've determined the exact algorithms and implemented a simulator that runs the calculator's actual code. This article reveals the details.
   <p>
 <div id="calcImageDiv">
   <img id="calcImage" src="virtual_sinclair_scientific.png" width=225 height=500></img>
@@ -293,20 +298,6 @@ Ken Shirriff's blog
 <p>
 <canvas id="keygrid" width="405" height="95" style="margin-left: 0"></canvas>
 <table id="registers">
-  <tr>
-    <td id="registers-d10"></td>
-    <td id="registers-d9"></td>
-    <td id="registers-d8"></td>
-    <td id="registers-d7"></td>
-    <td id="registers-d6"></td>
-    <td id="registers-d5"></td>
-    <td id="registers-d4"></td>
-    <td id="registers-d3"></td>
-    <td id="registers-d2"></td>
-    <td id="registers-d1"></td>
-    <td id="registers-d0"></td>
-    <th>Digit scan</th>
-  </tr>
   <tr>
     <td id="registers-a10"></td>
     <td id="registers-a9"></td>
@@ -350,31 +341,31 @@ Ken Shirriff's blog
     <th>C register</th>
   </tr>
   <tr>
-    <td id="registers-af10" title="dpt"></td>
-    <td id="registers-af9"></td>
+    <td id="registers-af10" title="RET1FLAG"></td>
+    <td id="registers-af9" title="TAN"></td>
     <td id="registers-af8"></td>
-    <td id="registers-af7" title="st"></td>
-    <td id="registers-af6" title="sign"></td>
-    <td id="registers-af5" title="post/temp"></td>
-    <td id="registers-af4" title="equal"></td>
-    <td id="registers-af3" title="clear display"></td>
-    <td id="registers-af2" title="op3: operation"></td>
-    <td id="registers-af1" title="op2: sub/div"></td>
-    <td id="registers-af0" title="op1: mul/div"></td>
+    <td id="registers-af7"></td>
+    <td id="registers-af6" title="UP_LOW"></td>
+    <td id="registers-af5" title="COS_TAN"></td>
+    <td id="registers-af4"></td>
+    <td id="registers-af3"></td>
+    <td id="registers-af2" title="TAN"></td>
+    <td id="registers-af1" title="RET1FLAG"></td>
+    <td id="registers-af0" title="LOW"></td>
     <th>A flags</th>
   </tr>
   <tr>
-    <td id="registers-bf10" title="fd"></td>
-    <td id="registers-bf9"></td>
+  <td id="registers-bf10" title="EMODE"></td>
+    <td id="registers-bf9" title="NEWEXP"></td>
     <td id="registers-bf8"></td>
-    <td id="registers-bf7"></td>
-    <td id="registers-bf6" title="sign"></td>
-    <td id="registers-bf5" title="ovf"></td>
-    <td id="registers-bf4" title="post/temp"></td>
-    <td id="registers-bf3" title="const"></td>
-    <td id="registers-bf2" title="op3: operation"></td>
-    <td id="registers-bf1" title="op2: sub/div"></td>
-    <td id="registers-bf0" title="op1: mul/div"></td>
+    <td id="registers-bf7" title="OPDONE"></td>
+    <td id="registers-bf6"></td>
+    <td id="registers-bf5"></td>
+    <td id="registers-bf4"></td>
+    <td id="registers-bf3"></td>
+    <td id="registers-bf2"></td>
+    <td id="registers-bf1"></td>
+    <td id="registers-bf0"></td>
     <th>B flags</th>
   </tr>
   <tr>
@@ -402,4 +393,124 @@ Ken Shirriff's blog
     <td colspan=4 id="registers-cc"></td>
   </tr>
 </table>
+<div style="background:#ddd; border: 2px solid gray;max-width:780px; padding: 10px;">
+  <h2>Quick start guide</h2>
+  The Sinclair Scientific calculator uses <a href="http://en.wikipedia.org/wiki/Reverse_Polish_notation">reverse Polish notation</a> (RPN) and scientific notation, so the key sequences are a bit unusual. Numbers automatically have a decimal point inserted; use <code>E</code> to set the exponent. Operations are entered after the number. Use the up and down arrows to select scientific functions. A display such as <code class="ex">1.2300 01</code> indicates 1.23*10^1, i.e. 12.3. A few examples:
+  <p>
+  To divide 17 by 3, enter
+  <code class="ex">1 7 E 1 + 3 &divide;</code>
+  <p>
+  To take the sin of 0.01 radians, enter
+  <code class="ex">0 0 1 &#x25b2; +</code>
+  <p>
+  To take antilog of .5 (to compute 10^.5), enter
+  <code class="ex">5 E - 1 &#x25bc; x</code>
+</div>
+<h2>Representing numbers</h2>
+Numbers are represented as a 6-digit mantissa and a two-digit exponent. For example, 1234.5 has a mantissa of 1.2345 and an exponent of 3. Interestingly, only 5 digits are displayed, although 6 digits are stored internally.
+<p>
+The mantiss and exponent each have a sign; positive is represented by the digit 0 and negative by the digit 5. This may seem random, but it actually makes sign arithmetic easy. For instance, when multiplying numbers the signs are added: positive * positive has 0+0=0 which indicates positive. Negative * negative has 5+5=0 indicating positive (the carry is dropped). Negative * positive has 5+0=5 indicating negative. This is one of the tricks that helps the Sinclair code fit into the small ROM.
+<p>
+It's slightly confusing that numbers are stored internally different from how they are displayed. 
+The top digit in A is the mantissa sign, followed by the exponent sign. (The signs have to be stored in these locations since the hardware provides special display decoding for these digits which is how a <code>5</code> is displayed as a <code>-</code>.) The next two digits of the A register are the exponent, which is followed by the mantissa. This order is opposite from the display but makes some calculations simpler.
+<h2>How addition and subtraction are implemented</h2>
+Addition and subtraction are straightforward. Since the two values may have different exponents, one of the values is shifted until they line up. Then the mantissas are added or subtracted as appropriate. The code has some special cases to handle the different combinations of signs in the arguments.
+<p>
+After the operation, the result is normalized. That is, a result such as 0.0023 is shifted to 2.3000 and the exponent is decreased by 2. Finally, registers are cleaned up and the result is displayed.
+<h2>How multiplication works</h2>
+You might be surprised to learn that the calculator chip cannot perform multiplication natively. There's no floating point unit to multiply two numbers. Instead, multiplication is performed through repeated addition, digit by digit.
+<p>
+For example, 12 * 34 is computed as 34+34 + 340 (i.e. 2 * 34 + 1 * 340).
+<p>
+Before multiplying the mantissas, the exponents are simply added. At the end, the result is normalized.
+<h2>How division works</h2>
+Division is done by repeated subtraction, somewhat like grade-school long division. First the divisor is normalized, since dividing by 0.0001 would be a lot of subtractions. Next, the exponents are subtracted. Finally, the divisor is subtracted as many times as possible, counting the number of subtractions into the result. The remainder is shifted and the process repeats through all the digits. For example, 7 &divide; 3 is computed as 7 - 3 - 3 counts 2 subtractions with remainder of 1, Shift the remainder to 10 and compute 10 - 3 - 3 - 3 counts 3 subtractions with a remainder of 1. This repeats a few more digits to generate the result 2.3333.
+<h2>
+How trig operations work
+</h2>
+How can sine and cosine be computed efficiently in a calculator that has a hard time evethe desired doing multiplication? The trick is to do repeated rotations by 0.001 radians as many times as necessary.
+If you have the cosine (C) and sine (S), to rotate by .001 radians, simply do:
+<pre>
+C = C - S / 1000
+S = S + C / 1000
+</pre>
+These operations are quick and are done without division: <code>S / 1000</code> is simply S shifted right three digits. (If you've studied graphics, you may recognize a rotation matrix here.)
+<p>
+The calculator multiplies the input argument by 1000 (i.e. shifts left three digits) and performs the rotation that many times; <code>TRIGLOOP</code> is the code that does this. For tangent, the sine and cosine are simply divided. As the input argument gets larger, this loop takes longer and longer, however.
+<p>
+The following diagram illustrates. The starting vector (1, 0) is rotated in steps of .001 radian until angle &theta; is reached. At that point, the coordinates give cos &theta; and sin &theta;.
+<p>
+<img src="sinclair-sincos.png" width=275 height=275>
+<p>
+Arcsine and arccosine use the same loop, but instead of iterating a fixed number of times, the rotation is performed until the resulting sine or cosine matches the desired value, and the loop counter gives (after dividing by 1000) the angle &theta;, which is the desired arcsine or arccosine.
+<p>
+Arctan uses a slight modification. To compute <code>arcsin(z)</code>, the starting vector is (z, 1). The vector is rotated until the first coordinate is 0. The angle of rotation gives the arctan.<p>
+The following diagram shows how this works for <code>arctan(.7)</code>. Rotating the red vector by &theta; will make the x coordinate 0. <code>tan(&theta;)</code> is .7 (opposite &divide; adjacent in the red triangle). Thus, rotating the vector until it is vertical and counting to measure &theta; will generate the arctan.
+<p>
+<img src="sinclair-tan.png" width=275 height=275>
+<h2>
+How log operations work
+</h2>
+Log and antilog are a bit more complicated than trig operations. The core of the calculation is computing powers of .99, which can be done efficiently in a loop, since X*.99 is just X - X / 100, which as with trig is simply shifts and subtracts. Thus, no multiplication or division is required to compute these powers.
+<p>
+One complication of using .99 as the base is the calculations require the constant 229.15 (which approximates -1/log(.99)) in several places. Unfortunately, the calculator can only store single-digit constants. The solution is the calculator actually recomputes this constant every time it performs a log or antilog.
+<p>
+The main log loop takes an input X and iterates through X*.99^N until the result is less than 1. The resulting loop counter N is approximately -log(X)/log(.99). By adding the remainder, a couple additional digits of accuracy are obtained - see the code comments for details.
+<p>
+Putting this all together, the log is computed by using the loop to compute -log(10)/log(.99), which is the magic constant 229.15. The same loop is used on the mantissa of the input to compute -log(input)/log(.99). Dividing the two values yields the log of the input.  Finally, the exponent of the input is simply added to the result, since log(10^N) is just N.
+<p>
+Thus, log is computed with a single division and all the other operations are quick shifts, adds, and subtracts.
+<h2>How antilog works</h2>
+Antilog (i.e. 10^x) reuses much of the same code as log. The key observation for antilog is that 10^x = 10*.99^(229.15*(1-x)). To compute the antilog, first the magic constant 22.915 is computed as before. Next 1-x is multiplied by the constant. Then the powers of .99 loop is done that many times. Since the loop can only be done an integer number of times, a remainder is left over. To get more accuracy, a division is performed using the remainder - see the code for details.
+<p>
+Thus, antilog is computed with a multiplication, a division, and a lot of shifts, adds, and subtracts.
+<p>
+You might wonder how this can fit into three registers since there's the constant 229.15, the loop counter, the power of .99, and the power divided by 100, all in use at the same time. The trick is the masks are used to split registers in two, so part of the register can be a counter and part can hold a computation value, for instance.
+<h2>Sharing code</h2>
+The diagram below shows the high-level control flow for the different operations the calculator performs. Note that multiple operations reuse the same code blocks. This is one way the code is squeezed into 320 words. Since the chip doesn't support subroutine calls, it's not as simple as just calling a multiply subroutine. Instead, the flag register is used to keep track of what's going on. For instance, at the end of multiplication, the control flow branches either to normalize or antilog based on one of the flags. Thus, flags and gotos are used as a replacement for subroutine calls.
+<p>
+<img src="sinclair-flowchart.png">
+<p>
+<h2>Reverse engineering</h2>
+The general algorithms used can be figured out by looking at the output from a real calculator and the timing for different values, but reverse-engineering the exact algorithms took a look at the silicon.
+<p>
+The <a href="http://visual6502.org">Visual 6502</a> group enjoys dissolving old chips in acid and photographing the die to reverse engineer them. I used their photo of the Sinclair Scientific chip to find out how the calculator works. The processor in the Sinclair Scientific is in the Texas Instruments 080x series.
+<p>
+The image below shows a highly magnified image of the calculator chip with the main sections labeled.
+The chip is customizable, not just the instruction ROM, but also the operation masks, constants, display decoding, and even the instruction set! This allows the same basic chip to be easily modified for use in different calculators.
+For details on the operation of the chip, see my <a href="http://righto.com/ti">TI calculator simulator</a> with schematics and detailed explanation.
+<p>
+<img src="sinclair-chip-labeled.png">
+<p>
+The image below zooms in on part of the ROM, showing individual transistors.
+The chip uses simple metal-gate <a href="http://en.wikipedia.org/wiki/PMOS_logic">PMOS</a> technology. The vertical metal wires are clearly visible in the image. Underneath the metal is the silicon. Regions of the silicon have been modified to become conductive. In the ROM, these regions form horizontal conductors; the borders of the conductors are visible below. Finally, the rectangles in the image are the metal gates of transistors between two of the silicon lines. The larger rectangles are multiple transistors.
+<p>
+<img src="sinclair-chip-zoom.png">
+<p>
+This chip uses simpler technology than chips such as the 6502. In particular, it doesn't have a layer of polysilicon interconnects like the <a href="http://www.righto.com/2013/01/a-small-part-of-6502-chip-explained.html">6502 processor</a>.
+<p>
+The ROM is programmed by putting a transistor for a zero bit and omitting a transistor for a one bit. Thus, by looking at the photograph, the contents of the ROM are easily determined. Likewise, the operation masks and single-digit constants can be figured out from the photograph.
+<p>
+The Sinclair Scientific chip adds a couple instructions to the instruction set that weren't in the original chip. By looking at the instruction decoding circuit, it wasn't too hard to figure them out. The instructions were nothing special (for example, add A to B and store the result in C), but they probably made the code a few critical instructions shorter.
+<p>
+Similarly, looking at the output and timings for log and antilog 
+<h2>Bugs</h2>
+The Sinclair Scientific cut a lot of corners to fit into 320 words of ROM, so it's not surprising there are bugs. By looking at the code, we can see exactly what goes wrong.
+<p>
+EdS found that </code>1.99996 antilog</code> yields the wildly wrong answer of 0. The problem is in the computation of 229.15*(1-.99996), the second factor is too small and the multiplication yields 0 causing antilog to bail out.
+<p>
+Another antilog shortcut is assuming that if the exponent is greater than 0, it is 1. 
+Thus <code>0.01E2 antilog</code> yields 1.2589 instead of 10. Calling NORMALIZE would have fixed this, but probably there wasn't space.
+<p>
+Arccos of a very small value (e.g. 0.0005) goes into an almost-infinite loop and takes 1 minute, 48 seconds to complete (as measured on a real calculator), before returning the wrong value 0. The root cause is since the angle is increased in steps of .001, it never reaches the desired cosine value.  When the rotation vector crosses vertical, the angle goes from 1.570 radians to 1.571 radians. cos 1.570 is bigger than .0005 so the loop doesn't exit. But at 1.571, everything falls apart. The loop uses unsigned arithmetic, so the sine value wraps to 999.99955 and the sine and cos become meaningless. The only reason the loop ever terminates is the loop counter overflows after 9999 iterations, which inadvertently causes the code to fall into the arctan path and exit with 0.
+<h2>Performance? What performance</h2>
+Due to the simple loop-based algorithms, the speed of the Sinclair Scientific calculator varies from good to horribly slow depending on the values. (That is, the real calculator, not the simulator.)
+For instance, sin .1 takes under a second, but sin 1 takes about 7.5 seconds. Arccos .2 takes about 15 seconds. Log and antilog are less variable, taking about 1 to 2 seconds. There's a fixed overhead for log and antilog because the constant 229.15 needs to be recomputed every time.
+In comparison, the HP-35 was designed with a one second deadline for computations.
+<h2>Accuracy? What accuracy?</h2>
+The conceptual leap that allowed Sinclair to do what Texas Instruments considered impossible was the realization that many people don't need accuracy and performance. 
+HP put a lot of work into the
+<a href="http://www8.hp.com/us/en/pdf/023hpjournal03_tcm_245_935056.pdf">accuracy of the HP-35 calculator</a>, using transcendental pseuco-multiplication and pseudo-division algorithms. The HP-35 has roundoff in the 11th place, which can accumulate in scientific operations, affecting the 7th digit in worst case. In comparison, scientific operations on the Sinclair Scientific only have three decimal places of accuracy.
+<h2>Credits</h2>
+This was done in cooperation with the Visual 6502 team. Special thanks to John McMaster for chip processing and photography, Ed Spittles for timings and experiments on a real calculator, Phil Mainwaring for feedback and analysis, and James Abbatiello for code improvements. The simulator is available on GitHub as <a href="https://github.com/shirriff/TICalculatorJSSimulator">TICalculatorJSSimulator</a>.
 </html>

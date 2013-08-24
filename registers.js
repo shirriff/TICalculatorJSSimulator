@@ -9,7 +9,9 @@ var Registers = function(elem, model) {
   this.update = function() {
     function updateOne(contents, name) {
       for (var i = 0; i <= 10; i++) {
-	$("#registers-" + name + (10 - i))[0].textContent = contents[i];
+	var reg = $("#registers-" + name + (10 - i));
+	if (reg.length == 0) break; // Skip registers if not present
+	reg[0].textContent = contents[i];
       }
     }
 
@@ -24,7 +26,7 @@ var Registers = function(elem, model) {
     for (var i = 0; i <= 10; i++) {
       var elem = $("#registers-m" + (10 - i));
       var m = model.mask ? model.mask[i] : ' ';
-      elem.text(m > 0 ? m : '');
+      elem.text(m === '*' ? ' ' : m);
       if (m === ' ') {
 	elem.removeClass('mask');
       } else {

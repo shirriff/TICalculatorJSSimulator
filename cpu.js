@@ -13,8 +13,27 @@ var Cpu = function(model, masks, sinclair) {
     return this.model.rom[this.model.address] & 0xf;
   };
 
+  // Indicates opcodes for which the constant should be displayed
+  var opsWithK = {
+	1: 'AAKA',
+	2: 'AAKC',
+	5: 'ACKA',
+	6: 'ACKB',
+	9: 'SAKA',
+	11: 'SCKC',
+	13: 'CAK',
+	15: 'CCK',
+	16: 'AKA',
+	17: 'AKB',
+	18: 'AKC',
+	26: 'AKCN',
+	27: 'AAKAH',
+	28: 'SAKAH',
+	29: 'ACKC',
+  };
+
   // Get the mask vector associated with the current instruction's mask
-  // Entries are ' ' if not masked, 0 if mask, n if mask and constant.
+  // Entries are ' ' if not masked, '*' if masked, n if mask and constant.
   // Note that S10 is in mask[0]
   // Returns null if mask is not appropriate for this instruction
   this.getMask = function() {
@@ -22,14 +41,17 @@ var Cpu = function(model, masks, sinclair) {
     var classBits = instruction >> 9;
     var opcode = (instruction >> 4) & 0x1f;
     if (classBits == 3 || (classBits == 2 && opcode > 18 &&
-	  opcode != 21 && opcode != 22)) {
+	  opcode != opcode != 21 && opcode != 22)) {
       var mask = masks[this.getMaskNum()];
       var maskVec = [];
       for (var i = 0; i <= 10; i++) {
 	if (mask[i] === ' ') {
 	  maskVec.push(mask[i]);
-	} else {
+	} else if (classBits == 3 && opsWithK[opcode]) {
+	  // Register instruction
 	  maskVec.push(parseInt(mask[i]));
+	} else {
+	  maskVec.push('*');
 	}
       }
       return maskVec;

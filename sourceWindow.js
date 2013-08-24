@@ -15,7 +15,7 @@ var SourceWindow = function(elem, model, sourceCode) {
     var html = [];
     var regex = /^([\d ]{3}) (.*)/;
     for (var i = 0; i < sourceCode.length; i++) {
-      var comment = sourceCode[i].replace(';', '');
+      var comment = sourceCode[i].replace('; ', '');
       var line = '<div id="s' + i + '">';
       var m = sourceCode[i].match(regex);
       if (m) {

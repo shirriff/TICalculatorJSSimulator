@@ -14,7 +14,7 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
   this.sourceWindow = sourceWindow;
   this.cpu = cpu;
   this.registers = registers;
-  this.autospeed = 1;
+  this.lineCount = [];
   this.calcImage.callback = function(key) {
     if (key == 'POWER') {
       if (model.power == 1) {
@@ -58,7 +58,7 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
       stopButton.hide();
       playButton.show();
       model.running = 0;
-      that.autospeed = 1;
+      that.lineCount = [];
       });
   stepButton.click(function() {
       if (model.power == 0) {
@@ -112,14 +112,7 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
       // Do 100 operations between GUI updates
       iterations = 100;
     } else if (model.speed == 'auto') {
-      // The idea of autospeed is to do the first 200 ops at a moderate pace
-      // and then accelerate so long trig operations will finish in a reasonable time
-      if (that.autospeed < 200) {
-        iterations = 1;
-      } else {
-	iterations = that.autospeed / 10 - 18;
-      }
-      that.autospeed++;
+      iterations = 1;
     }
 
     for (var i = 0; i < iterations; i++) {
@@ -133,9 +126,14 @@ var Controller = function(calcImage, model, keygrid, display, display2, sourceWi
 	  model.keyPressed = '';
 	}
       }
+      // Turbo-mode over lines that we keep hitting.
+      that.lineCount[model.address] = (that.lineCount[model.address] || 0) + 1;
+      if (that.lineCount[model.address] > 5) {
+	iterations += .99; // Skip 99% of repeated lines
+      }
       if (model.rom[model.address] >> 4 == 0x52 && model.keyPressed == '') { // WAITNO
 	model.idle = 1;
-	that.autospeed = 1; /* reset autospeed */
+	that.lineCount = []; /* reset turbo */
       } else {
 	model.idle = 0;
       }

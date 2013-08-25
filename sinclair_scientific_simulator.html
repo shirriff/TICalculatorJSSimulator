@@ -405,6 +405,8 @@ Ken Shirriff's blog
   <p>
   To take antilog of .5 (to compute 10^.5), enter
   <code class="ex">5 E - 1 &#x25bc; x</code>
+  <p>
+  Detailed examples are available <a href="http://phils.bitboxes.co.uk/scan_and_ocr/manuals/sinclair_scientific/examples.html">here</a> and the original manual <a href="http://phils.bitboxes.co.uk/scan_and_ocr/manuals/sinclair_scientific/">here</a>.
 </div>
 <h2>Representing numbers</h2>
 Numbers are represented as a 6-digit mantissa and a two-digit exponent. For example, 1234.5 has a mantissa of 1.2345 and an exponent of 3. Interestingly, only 5 digits are displayed, although 6 digits are stored internally.
@@ -476,7 +478,7 @@ The general algorithms used can be figured out by looking at the output from a r
 <p>
 The <a href="http://visual6502.org">Visual 6502</a> group enjoys dissolving old chips in acid and photographing the die to reverse engineer them. I used their photo of the Sinclair Scientific chip to find out how the calculator works. The processor in the Sinclair Scientific is in the Texas Instruments 080x series.
 <p>
-The image below shows a highly magnified image of the calculator chip with the main sections labeled.
+The image below shows a highly magnified image of the calculator chip with the main sections labeled. (The original image is <a href="http://siliconpr0n.org/archive/doku.php?id=mcmaster:ti:tmc0805nc">here</a>.)
 The chip is customizable, not just the instruction ROM, but also the operation masks, constants, display decoding, and even the instruction set! This allows the same basic chip to be easily modified for use in different calculators.
 For details on the operation of the chip, see my <a href="http://righto.com/ti">TI calculator simulator</a> with schematics and detailed explanation.
 <p>
@@ -489,7 +491,7 @@ The chip uses simple metal-gate <a href="http://en.wikipedia.org/wiki/PMOS_logic
 <p>
 This chip uses simpler technology than chips such as the 6502. In particular, it doesn't have a layer of polysilicon interconnects like the <a href="http://www.righto.com/2013/01/a-small-part-of-6502-chip-explained.html">6502 processor</a>.
 <p>
-The ROM is programmed by putting a transistor for a zero bit and omitting a transistor for a one bit. Thus, by looking at the photograph, the contents of the ROM are easily determined. Likewise, the operation masks and single-digit constants can be figured out from the photograph.
+The ROM is programmed by putting a transistor for a zero bit and omitting a transistor for a one bit. Once the layout of the ROM is known, reading the ROM is a simple matter of looking for transistors in the image. Likewise, the operation masks and single-digit constants can be figured out from the photograph. I converted the ROM contents into source code and wrote extensive comments explaining how the code works; the commented source code is displayed in the simulator window.
 <p>
 The Sinclair Scientific chip adds a couple instructions to the instruction set that weren't in the original chip. By looking at the instruction decoding circuit, it wasn't too hard to figure them out. The instructions were nothing special (for example, add A to B and store the result in C), but they probably made the code a few critical instructions shorter.
 <p>
@@ -503,6 +505,8 @@ Another antilog shortcut is assuming that if the exponent is greater than 0, it 
 Thus <code>0.01E2 antilog</code> yields 1.2589 instead of 10. Calling NORMALIZE would have fixed this, but probably there wasn't space.
 <p>
 Arccos of a very small value (e.g. 0.0005) goes into an almost-infinite loop and takes 1 minute, 48 seconds to complete (as measured on a real calculator), before returning the wrong value 0. The root cause is since the angle is increased in steps of .001, it never reaches the desired cosine value.  When the rotation vector crosses vertical, the angle goes from 1.570 radians to 1.571 radians. cos 1.570 is bigger than .0005 so the loop doesn't exit. But at 1.571, everything falls apart. The loop uses unsigned arithmetic, so the sine value wraps to 999.99955 and the sine and cos become meaningless. The only reason the loop ever terminates is the loop counter overflows after 9999 iterations, which inadvertently causes the code to fall into the arctan path and exit with 0.
+<p>
+Log is only supported for arguments &ge; 1. The calculator almost works for arguments such as 5E-3, except it adds the exponent 3 instead of subtracting it. If they had room for just a few more instructions they could have made this work.
 <h2>Performance? What performance</h2>
 Due to the simple loop-based algorithms, the speed of the Sinclair Scientific calculator varies from good to horribly slow depending on the values. (That is, the real calculator, not the simulator.)
 For instance, sin .1 takes under a second, but sin 1 takes about 7.5 seconds. Arccos .2 takes about 15 seconds. Log and antilog are less variable, taking about 1 to 2 seconds. There's a fixed overhead for log and antilog because the constant 229.15 needs to be recomputed every time.
@@ -511,6 +515,8 @@ In comparison, the HP-35 was designed with a one second deadline for computation
 The conceptual leap that allowed Sinclair to do what Texas Instruments considered impossible was the realization that many people don't need accuracy and performance. 
 HP put a lot of work into the
 <a href="http://www8.hp.com/us/en/pdf/023hpjournal03_tcm_245_935056.pdf">accuracy of the HP-35 calculator</a>, using transcendental pseuco-multiplication and pseudo-division algorithms. The HP-35 has roundoff in the 11th place, which can accumulate in scientific operations, affecting the 7th digit in worst case. In comparison, scientific operations on the Sinclair Scientific only have three decimal places of accuracy.
+<h2>Conclusion</h2>
+I don't mean to criticize the Sinclair Scientific calculator for low speed and accuracy. It achieved its goals and became very popular. One moral is that by re-evaluating the assumptions of the market leaders, you can create a product that seems impossible.
 <h2>Credits</h2>
-This was done in cooperation with the Visual 6502 team. Special thanks to John McMaster for chip processing and photography, Ed Spittles for timings and experiments on a real calculator, Phil Mainwaring for feedback and analysis, and James Abbatiello for code improvements. The simulator is available on GitHub as <a href="https://github.com/shirriff/TICalculatorJSSimulator">TICalculatorJSSimulator</a>.
+This was done in cooperation with the Visual 6502 team. Special thanks to John McMaster for chip processing and photography, Ed Spittles for timings and experiments on a real calculator, Phil Mainwaring for documentation, feedback and analysis, and James Abbatiello for code improvements. The simulator is available on GitHub as <a href="https://github.com/shirriff/TICalculatorJSSimulator">TICalculatorJSSimulator</a>.
 </html>

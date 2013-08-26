@@ -272,10 +272,16 @@ Ken Shirriff's blog
 </div>
 
 <div class="content">
-  <h3>Reverse-engineering and simulating the Sinclair Scientific calculator (under development, not for release)</h3>
-  In a hotel room in Texas in 1974, Clive Sinclair had a problem. He wanted to sell a cheap scientific calculator, but Texas Instrument's calculator chip could barely do four-function math. The chip was programmable, but its ROM only held 320 instructions, just enough for addition, subtraction, multiplication, and division. TI's programmers said it would be impossible to use the chip in a scientific calculator - the chip only had 3 registers, no subroutine stack, no support for multi-digit constants, and didn't even have hardware support for multiplication or division. How could you possibly squeeze any scientific functions in there, let alone eight trig and log operations?
+  <h3>The "impossible" Sinclair Scientific calculator reverse engineered (under development, not for release)</h3>
+  In a hotel room in Texas in 1973, Clive Sinclair had a big problem. He wanted to sell a cheap scientific calculator that would undercut the popular HP-35. Hewlett-Packard had taken two years, 20 engineers, and a million dollars to <a href="http://www.hpmuseum.org/hp35.htm">design the HP-35</a>, which used
+  <a href="http://www.jacques-laporte.org/HP%2035%20Saga.htm">5 complex chips</a>
+  and sold for $395. Sinclair's partnership with calculator manufacturer Bowmar had gone nowhere. Now Texas Instruments offered him an inexpensive <a href="http://righto.com/ti">calculator chip</a> that could barely do four-function math. Could he use this chip to build a $100 scientific calculator?
+<p>
+TI's engineers said this was impossible - their chip only had 3 storage registers, no subroutine calls, and no storage for computational constants. Its ROM held just 320 instructions, just enough for basic arithmetic. How could they possibly squeeze any scientific functions into this chip?
   <p>
-  Sinclair's programmers went to work and designed new algorithms to fit into 320 instructions. The result was the Sinclar Scientific calculator, which became a huge seller at an inexpensive price. How did they do it? Through reverse engineering, I've determined the exact algorithms and implemented a simulator that runs the calculator's actual code. This article reveals the details.
+Fortunately Clive Sinclair, head of Sinclair Radionics, had a secret weapon - programming whiz and math PhD Nigel Searle. In a few days in Texas, they came up with new algorithms and wrote the code for the world's first single-chip scientific calculator, somehow programming sine, cosine, tangent, arcsine, arccos, arctan, log, and exponentiation into the chip. The engineers at Texas Instruments were amazed.
+  <p>
+How did they do it? Up until now it's been a mystery. But through reverse engineering, I've determined the exact algorithms and implemented a simulator that runs the calculator's actual code. The details are below.
   <p>
 <div id="calcImageDiv">
   <img id="calcImage" src="virtual_sinclair_scientific.png" width=225 height=500></img>
@@ -415,10 +421,18 @@ The mantiss and exponent each have a sign; positive is represented by the digit 
 <p>
 It's slightly confusing that numbers are stored internally different from how they are displayed. 
 The top digit in A is the mantissa sign, followed by the exponent sign. (The signs have to be stored in these locations since the hardware provides special display decoding for these digits which is how a <code>5</code> is displayed as a <code>-</code>.) The next two digits of the A register are the exponent, which is followed by the mantissa. This order is opposite from the display but makes some calculations simpler.
-<h2>How addition and subtraction are implemented</h2>
-Addition and subtraction are straightforward. Since the two values may have different exponents, one of the values is shifted until they line up. Then the mantissas are added or subtracted as appropriate. The code has some special cases to handle the different combinations of signs in the arguments.
 <p>
-After the operation, the result is normalized. That is, a result such as 0.0023 is shifted to 2.3000 and the exponent is decreased by 2. Finally, registers are cleaned up and the result is displayed.
+Using scientific notation is a key concept that shrinked the Sinclair Scientific's code. As can be seen from the <a href="http://righto.com/ti">Texas Instrument code</a>, a calculator with regular floating point numbers needs a lot of code to shift numbers back and forth and adjust the decimal point. In fact, since the Texas Instruments code ends up keeping an exponent internally, the floating point display is strictly overhead. Moving the minus sign to the correct position is also overhead that the Sinclair Scientific avoids.
+<h2>How the code fits into 320 words</h2>
+The following chart breaks down the code into categories and shows how many instructions are used for each category. Blue is the 4-function Texas Instruments calculator, and red is the Sinclair Scientific calculator. The Sinclair Scientific has much shorter code in the first three categories because of RPN and scientific notation. The category <i>Function</i> is code to read the keyboard input and keep track of what function is being performed. RPN greatly simplifies this, since functions are performed immediately. With algebraic notation, the calculator must store the function when it is entered, and then perform it later. The next category, <i>Digit</i> is code to handle entering digits into a number. The TI calculator does a lot of work shifting numbers around and managing the decimal point. The Sinclair Scientific calculator is much simpler due to the fixed scientific notation. The <i>Display</i> category is code to format a number for display; again, scientific notation makes the code much simpler. <i>Normalize</i> is the code to normalize the result of an operation and is fairly close on both calculators. The add/subtract/multiply/divide code is also similar length on both calculators. The Sinclair Scientific implements the trig functions in about 40 instructions. Arc-trig operations are almost 30 more instructions. Logarithms are about 40 instructions, with anti-log about 20 on top of that.
+<p>
+Thus, it is largely the simplifications from RPN and scientific notation that freed up space for the scientific operations. Classification of instructions into categories is somewhat arbitrary, so small differences are not significant. Also, as will be explained below, the scientific operations reuse a lot of code, for example arc-trig reuses much of the trig code but isn't "charged" for it in the graph.
+<p>
+<img src="sinclair-code-categorization.png">
+<h2>How addition and subtraction are implemented</h2>
+Addition and subtraction are not too complicated. Since the two values may have different exponents, one of the values is shifted until they line up. Then the mantissas are added or subtracted as appropriate. The code has some special cases to handle the different combinations of signs in the arguments.
+<p>
+After the operation (as with all operations) the result is normalized. That is, a result such as 0.0023 is shifted to 2.3000 and the exponent is decreased by 2. Finally, registers are cleaned up and the result is displayed.
 <h2>How multiplication works</h2>
 You might be surprised to learn that the calculator chip cannot perform multiplication natively. There's no floating point unit to multiply two numbers. Instead, multiplication is performed through repeated addition, digit by digit.
 <p>
@@ -430,7 +444,7 @@ Division is done by repeated subtraction, somewhat like grade-school long divisi
 <h2>
 How trig operations work
 </h2>
-How can sine and cosine be computed efficiently in a calculator that has a hard time evethe desired doing multiplication? The trick is to do repeated rotations by 0.001 radians as many times as necessary.
+How can sine and cosine be computed efficiently in a calculator that has a hard time evethe desired doing multiplication? The trick is to do repeated rotations by 0.001 radians until the desired angle is reached.
 If you have the cosine (C) and sine (S), to rotate by .001 radians, simply do:
 <pre>
 C = C - S / 1000
@@ -438,9 +452,11 @@ S = S + C / 1000
 </pre>
 These operations are quick and are done without division: <code>S / 1000</code> is simply S shifted right three digits. (If you've studied graphics, you may recognize a rotation matrix here.)
 <p>
-The calculator multiplies the input argument by 1000 (i.e. shifts left three digits) and performs the rotation that many times; <code>TRIGLOOP</code> is the code that does this. For tangent, the sine and cosine are simply divided. As the input argument gets larger, this loop takes longer and longer, however.
+The calculator multiplies the input argument by 1000 (i.e. shifts left three digits) and performs the rotation that many times; <code>TRIGLOOP</code> is the code that does this.
+While this algorithm is simple, it has the drawback of being very slow for large angles.
+At the end of the rotations, the sine and cosine are available. To compute the tangent, the sine and cosine are simply divided.
 <p>
-The following diagram illustrates. The starting vector (1, 0) is rotated in steps of .001 radian until angle &theta; is reached. At that point, the coordinates give cos &theta; and sin &theta;.
+The following diagram illustrates. The starting unit vector (1, 0) is rotated in steps of .001 radian until angle &theta; is reached. At that point, the coordinates give cos &theta; and sin &theta;. (
 <p>
 <img src="sinclair-sincos.png" width=275 height=275>
 <p>
@@ -450,9 +466,7 @@ Arctan uses a slight modification. To compute <code>arcsin(z)</code>, the starti
 The following diagram shows how this works for <code>arctan(.7)</code>. Rotating the red vector by &theta; will make the x coordinate 0. <code>tan(&theta;)</code> is .7 (opposite &divide; adjacent in the red triangle). Thus, rotating the vector until it is vertical and counting to measure &theta; will generate the arctan.
 <p>
 <img src="sinclair-tan.png" width=275 height=275>
-<h2>
-How log operations work
-</h2>
+<h2>How log works</h2>
 Log and antilog are a bit more complicated than trig operations. The core of the calculation is computing powers of .99, which can be done efficiently in a loop, since X*.99 is just X - X / 100, which as with trig is simply shifts and subtracts. Thus, no multiplication or division is required to compute these powers.
 <p>
 One complication of using .99 as the base is the calculations require the constant 229.15 (which approximates -1/log(.99)) in several places. Unfortunately, the calculator can only store single-digit constants. The solution is the calculator actually recomputes this constant every time it performs a log or antilog.
@@ -468,7 +482,7 @@ Antilog (i.e. 10^x) reuses much of the same code as log. The key observation for
 Thus, antilog is computed with a multiplication, a division, and a lot of shifts, adds, and subtracts.
 <p>
 You might wonder how this can fit into three registers since there's the constant 229.15, the loop counter, the power of .99, and the power divided by 100, all in use at the same time. The trick is the masks are used to split registers in two, so part of the register can be a counter and part can hold a computation value, for instance.
-<h2>Sharing code</h2>
+<h2>Sharing code and control flow</h2>
 The diagram below shows the high-level control flow for the different operations the calculator performs. Note that multiple operations reuse the same code blocks. This is one way the code is squeezed into 320 words. Since the chip doesn't support subroutine calls, it's not as simple as just calling a multiply subroutine. Instead, the flag register is used to keep track of what's going on. For instance, at the end of multiplication, the control flow branches either to normalize or antilog based on one of the flags. Thus, flags and gotos are used as a replacement for subroutine calls.
 <p>
 <img src="sinclair-flowchart.png">
@@ -495,28 +509,44 @@ The ROM is programmed by putting a transistor for a zero bit and omitting a tran
 <p>
 The Sinclair Scientific chip adds a couple instructions to the instruction set that weren't in the original chip. By looking at the instruction decoding circuit, it wasn't too hard to figure them out. The instructions were nothing special (for example, add A to B and store the result in C), but they probably made the code a few critical instructions shorter.
 <p>
-Similarly, looking at the output and timings for log and antilog 
+The image below shows the ALU instruction decode ROM. Each opcode from 31 to 0 has an input line on the top and is connected via transistors (the squares) to control lines that exit on the left. The ALU takes two arguments and by default performs addition. For instance opcode 0 is connected to "Arg1 is A", "Arg2 is B", and "Dst is A". Thus it adds A and B, putting the result in A. Opcode 13 selects C as argument 1, constant as argument2, performs a subtract, and has no destination. Thus, it compares register C to a constant. Likewise, the other opcodes have their actions defined by the decode ROM.
+<p>
+<img src="sinclair-instruction-decode.png">
+<p>
+<h2>Limited performance and accuracy</h2>
+The conceptual leap that made the Sinclair Scientific possible was realizing that many people didn't need the accuracy and performance of HP and TI calculators. (This can be considered an application of the <a href="http://www.jwz.org/doc/worse-is-better.html">Worse is Better</a> design principle.)
+HP put a lot of work into the
+<a href="http://www8.hp.com/us/en/pdf/023hpjournal03_tcm_245_935056.pdf">accuracy of the HP-35 calculator</a>, using transcendental pseuco-multiplication and pseudo-division algorithms (basically CORDIC). The HP-35 has roundoff in the 11th place, and scientific operations are generally accurate to at least the 7th digit. In comparison, scientific operations on the Sinclair Scientific only have three decimal places of accuracy at best.
+<p>
+Due to the simple loop-based algorithms, the speed of the Sinclair Scientific calculator varies from good to horribly slow depending on the values.
+For instance, sin .1 takes under a second, but sin 1 takes about 7.5 seconds. Arccos .2 takes about 15 seconds. Log and antilog have the overhead of recomuting the constant 229.15, and take about 1 to 2 seconds.
+In comparison, the HP-35 was designed with a one second deadline for computations. 
+<p>
+Using sucn slow, inaccurate algorithms would be unthinkable for HP or TI, but for Sinclair Scientific they got the job done at a good price.
 <h2>Bugs</h2>
 The Sinclair Scientific cut a lot of corners to fit into 320 words of ROM, so it's not surprising there are bugs. By looking at the code, we can see exactly what goes wrong.
 <p>
-EdS found that </code>1.99996 antilog</code> yields the wildly wrong answer of 0. The problem is in the computation of 229.15*(1-.99996), the second factor is too small and the multiplication yields 0 causing antilog to bail out.
+EdS found that </code>1.99996 antilog</code> yields the wildly wrong answer of 0. The problem is in the computation of 229.15*(1-.99996), the second factor is so small the multiplication yields 0 causing antilog to bail out.
 <p>
-Another antilog shortcut is assuming that if the exponent is greater than 0, it is 1. 
+The antilog code assumes that if the exponent is greater than 0, it is 1. 
 Thus <code>0.01E2 antilog</code> yields 1.2589 instead of 10. Calling NORMALIZE would have fixed this, but probably there wasn't space.
 <p>
-Arccos of a very small value (e.g. 0.0005) goes into an almost-infinite loop and takes 1 minute, 48 seconds to complete (as measured on a real calculator), before returning the wrong value 0. The root cause is since the angle is increased in steps of .001, it never reaches the desired cosine value.  When the rotation vector crosses vertical, the angle goes from 1.570 radians to 1.571 radians. cos 1.570 is bigger than .0005 so the loop doesn't exit. But at 1.571, everything falls apart. The loop uses unsigned arithmetic, so the sine value wraps to 999.99955 and the sine and cos become meaningless. The only reason the loop ever terminates is the loop counter overflows after 9999 iterations, which inadvertently causes the code to fall into the arctan path and exit with 0.
+Arccos of a very small value (e.g. 0.0005) goes into an almost-infinite loop and takes 1 minute, 48 seconds to complete (as measured on a real calculator), before returning the wrong value 0. The root cause is since the angle is increased in steps of .001, it never reaches the desired cosine value.  When the rotation vector crosses vertical, the angle goes from 1.570 radians to 1.571 radians. cos 1.570 is bigger than .0005 so the loop doesn't exit. But at 1.571, everything falls apart: the loop uses unsigned arithmetic, so the sine value wraps to 999.99955 and the sine and cos become meaningless. The only reason the loop ever terminates is the loop counter eventually overflows after 9999 iterations, which inadvertently causes the code to fall into the arctan path and exit with 0.
 <p>
 Log is only supported for arguments &ge; 1. The calculator almost works for arguments such as 5E-3, except it adds the exponent 3 instead of subtracting it. If they had room for just a few more instructions they could have made this work.
-<h2>Performance? What performance</h2>
-Due to the simple loop-based algorithms, the speed of the Sinclair Scientific calculator varies from good to horribly slow depending on the values. (That is, the real calculator, not the simulator.)
-For instance, sin .1 takes under a second, but sin 1 takes about 7.5 seconds. Arccos .2 takes about 15 seconds. Log and antilog are less variable, taking about 1 to 2 seconds. There's a fixed overhead for log and antilog because the constant 229.15 needs to be recomputed every time.
-In comparison, the HP-35 was designed with a one second deadline for computations.
-<h2>Accuracy? What accuracy?</h2>
-The conceptual leap that allowed Sinclair to do what Texas Instruments considered impossible was the realization that many people don't need accuracy and performance. 
-HP put a lot of work into the
-<a href="http://www8.hp.com/us/en/pdf/023hpjournal03_tcm_245_935056.pdf">accuracy of the HP-35 calculator</a>, using transcendental pseuco-multiplication and pseudo-division algorithms. The HP-35 has roundoff in the 11th place, which can accumulate in scientific operations, affecting the 7th digit in worst case. In comparison, scientific operations on the Sinclair Scientific only have three decimal places of accuracy.
-<h2>Conclusion</h2>
-I don't mean to criticize the Sinclair Scientific calculator for low speed and accuracy. It achieved its goals and became very popular. One moral is that by re-evaluating the assumptions of the market leaders, you can create a product that seems impossible.
+<p>
+Scientific calculators usually provide constants such as e and &pi; but there was no space in the ROM for these constants. The Sinclair Scientific used the brilliant solution of printing the constants on calculator's case - the user could enter the constant manually if needed.
+<h2>Conclusions</h2>
+The Sinclair Scientific came out in 1974 and was the first single-chip scientific calculator (if you ignore the display driver chips). It was stylishly compact (3/4 inch thick) .
+It originally sold for the price of $119.95 or &pound;49.95 and by the end of the year was available as a kit for the amazingly low price of <a href="http://www.fdjyakov.narod.ru/ZX/a9.gif">&pound;9.95</a>.
+<p>
+Unfortunately, as calculator prices collapsed, so did Sinclair Radionics' profits, and the company was broken up in 1979 after heavy losses. Clive Sinclair's new company Sinclair Research went on to sell the highly-popular ZX 80 and ZX Spectrum home computers. Clive Sinclair was knighted for his accomplishments in 1983, becoming Sir Clive Sinclair.
 <h2>Credits</h2>
-This was done in cooperation with the Visual 6502 team. Special thanks to John McMaster for chip processing and photography, Ed Spittles for timings and experiments on a real calculator, Phil Mainwaring for documentation, feedback and analysis, and James Abbatiello for code improvements. The simulator is available on GitHub as <a href="https://github.com/shirriff/TICalculatorJSSimulator">TICalculatorJSSimulator</a>.
+This was done in cooperation with the <a href="http://visual6502.org">Visual 6502</a> team. Special thanks to John McMaster for chip processing and photography, Ed Spittles for timings and experiments on a real calculator, Phil Mainwaring for documentation, feedback and analysis, and James Abbatiello for code improvements.
+The Sinclair history is based on multiple sources including
+<a href="http://www.electronicsweekly.com/mannerisms/yarns/worlds-first-single-chip-scien-2007-07/">Electronics Weekly</a>,
+<a href="http://www.vintagecalculators.com/html/sinclair___the_pocket_calculat.html">Vintage Calculators</a>, 
+<a href="http://wos.meulie.net/pub/spectrum/books/SinclairStoryThe.pdf"><i>The Sinclair Story</i></a>, and <i>Programming the "Scientific"</i> by Nigel Searle in Wireless World June 1974</a>.
+The simulator is available on GitHub as <a href="https://github.com/shirriff/TICalculatorJSSimulator">TICalculatorJSSimulator</a>.
+
 </html>
